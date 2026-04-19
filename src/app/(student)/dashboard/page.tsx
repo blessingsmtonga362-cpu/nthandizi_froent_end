@@ -41,10 +41,7 @@ export default function StudentDashboard() {
             <div className="flex justify-between items-start mb-10 relative z-10">
               <div>
                 <h3 className="text-2xl font-black text-brand-slate mb-2">Profile Completion</h3>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  <Save size={14} className="text-emerald-500" />
-                  Last synced {lastSaved}
-                </div>
+                
               </div>
               <div className="px-4 py-1.5 bg-brand-blue/10 text-brand-blue rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
                 Active Draft
@@ -107,7 +104,7 @@ export default function StudentDashboard() {
             </Button>
           </div>
 
-          {/* Announcement Strip */}
+        { /*  Announcement Strip */}
           <div className="bg-brand-slate text-white rounded-[2rem] p-8 flex items-center justify-between shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
                 <Sparkles size={80} />
@@ -120,9 +117,9 @@ export default function StudentDashboard() {
                 <p className="font-black text-xl tracking-tight">System Update</p>
                 <p className="text-sm text-slate-400 font-medium mt-1">The Mthandizi pilot has been extended for UNIMA students.</p>
               </div>
-            </div>
+            </div> 
           </div>
-        </div>
+        </div> 
 
         {/* Status Sidebar */}
         <div className="space-y-8">

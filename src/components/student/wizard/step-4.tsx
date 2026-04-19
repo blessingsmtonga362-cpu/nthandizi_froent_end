@@ -5,7 +5,7 @@ import { Upload, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const selectClass = "w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none focus:border-brand-blue transition-colors";
-const labelClass = "text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-2 block";
+const labelClass = "text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2 block";
 const inputClass = "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors";
 
 export default function Step4() {

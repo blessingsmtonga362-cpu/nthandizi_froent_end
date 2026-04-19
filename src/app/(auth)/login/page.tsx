@@ -3,19 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Lock, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Domain Validation
+    if (!email.toLowerCase().endsWith("@unima.ac.mw")) {
+      setEmailError("Please use a correct email");
+      return;
+    }
+
+    setEmailError("");
     setIsLoading(true);
+    
     // Simulate high-end authentication delay
     setTimeout(() => {
       router.push("/dashboard");
@@ -45,21 +57,41 @@ export default function LoginPage() {
             
             {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider ml-1 block">
+              <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">
                 Email
               </label>
               <Input 
                 type="email" 
-                placeholder="e.g. name-id-year@unima.ac.mw"
+                placeholder="email"
                 required
-                className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError("");
+                }}
+                className={cn(
+                  "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors",
+                  emailError ? "border-red-500 ring-red-500" : ""
+                )}
               />
+              <AnimatePresence>
+                {emailError && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-2 flex items-center gap-1.5 ml-1"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5" /> {emailError}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Password Field */}
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
-                <label className="text-[11px] font-black uppercase text-slate-500 tracking-wider ml-1 block">
+                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider block">
                   Password
                 </label>
                 <Link href="#" className="text-[10px] text-brand-blue font-black uppercase tracking-widest hover:underline">
@@ -95,7 +127,7 @@ export default function LoginPage() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
-                  Sign In <ArrowRight size={18} strokeWidth={3} />
+                  Sign In
                 </div>
               )}
             </Button>
@@ -117,8 +149,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        
       </motion.div>
     </div>
   );

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { EducationLevel } from "@/lib/store/use-application-store";
 import { motion, AnimatePresence } from "framer-motion";
 
-const labelClass = "text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-2 block";
+const labelClass = "text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2 block";
 const inputClass = "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors";
 
 type TabKey = "primary" | "secondary" | "tertiary";

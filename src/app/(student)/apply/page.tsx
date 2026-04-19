@@ -11,15 +11,14 @@ import Step2 from "@/components/student/wizard/step-2";
 import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
 import Step5 from "@/components/student/wizard/step-5";
-import Step6 from "@/components/student/wizard/step-6";
 
-const STEPS = ["Personal", "Family", "Education", "Academics", "Payment", "Review"];
+const STEPS = ["Personal", "Family", "Education", "Academics", "Review"];
 
 export default function ApplicationWizard() {
   useOfflinePersistence();
   const { data, setStep } = useApplicationStore();
 
-  const nextStep = () => setStep(Math.min(data.currentStep + 1, 6));
+  const nextStep = () => setStep(Math.min(data.currentStep + 1, 5));
   const prevStep = () => setStep(Math.max(data.currentStep - 1, 1));
 
   return (
@@ -30,12 +29,7 @@ export default function ApplicationWizard() {
           <h1 className="text-3xl font-black text-brand-slate tracking-tight">Student Profiling</h1>
           <p className="text-slate-500 font-medium mt-1 italic">Provide honest information for accurate assessment.</p>
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-2xl">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          <span className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.2em] flex items-center gap-2">
-            <Save size={12} /> Local Sync Active
-          </span>
-        </div>
+       
       </div>
 
       {/* Stepper */}
@@ -50,14 +44,12 @@ export default function ApplicationWizard() {
               onClick={() => setStep(i + 1)}
               className="relative z-10 flex flex-col items-center gap-3 group focus:outline-none"
             >
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black transition-colors duration-300 cursor-pointer",
-                  isCurrent
-                    ? "bg-brand-blue text-white shadow-xl shadow-brand-blue/30"
-                    : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                )}
-              >
+              <div className={cn(
+                "w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black transition-colors duration-300 cursor-pointer",
+                isCurrent
+                  ? "bg-brand-blue text-white shadow-xl shadow-brand-blue/30"
+                  : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+              )}>
                 {i + 1}
               </div>
               <span className={cn(
@@ -87,7 +79,6 @@ export default function ApplicationWizard() {
               {data.currentStep === 3 && <Step3 />}
               {data.currentStep === 4 && <Step4 />}
               {data.currentStep === 5 && <Step5 />}
-              {data.currentStep === 6 && <Step6 />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -106,7 +97,7 @@ export default function ApplicationWizard() {
           <div className="flex flex-col items-center">
             <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-1">Section</div>
             <div className="text-lg font-black text-brand-slate">
-              {data.currentStep} <span className="text-slate-300">/</span> 6
+              {data.currentStep} <span className="text-slate-300">/</span> 5
             </div>
           </div>
 
@@ -114,7 +105,7 @@ export default function ApplicationWizard() {
             onClick={nextStep}
             className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
           >
-            {data.currentStep === 6 ? "Submit Profile" : "Continue"} <ChevronRight className="ml-2 w-5 h-5" />
+            {data.currentStep === 5 ? "Submit Profile" : "Continue"} <ChevronRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </motion.div>
