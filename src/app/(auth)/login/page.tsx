@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,17 +18,25 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Domain Validation
-    if (!email.toLowerCase().endsWith("@unima.ac.mw")) {
+
+    const normalised = email.trim().toLowerCase();
+
+    // Admin account — hardcoded for mock purposes
+    if (normalised === "admin@unima.ac.mw") {
+      setEmailError("");
+      setIsLoading(true);
+      setTimeout(() => router.push("/admin/dashboard"), 1200);
+      return;
+    }
+
+    // Students must use @unima.ac.mw
+    if (!normalised.endsWith("@unima.ac.mw")) {
       setEmailError("Please use a correct email");
       return;
     }
 
     setEmailError("");
     setIsLoading(true);
-    
-    // Simulate high-end authentication delay
     setTimeout(() => {
       router.push("/dashboard");
     }, 1200);
