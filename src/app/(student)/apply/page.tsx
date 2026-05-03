@@ -10,15 +10,14 @@ import Step1 from "@/components/student/wizard/step-1";
 import Step2 from "@/components/student/wizard/step-2";
 import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
-import Step5 from "@/components/student/wizard/step-5";
 
-const STEPS = ["Personal", "Family", "Education", "Academics", "Review"];
+const STEPS = ["Personal", "Family", "Education", "Review"];
 
 export default function ApplicationWizard() {
   useOfflinePersistence();
   const { data, setStep } = useApplicationStore();
 
-  const nextStep = () => setStep(Math.min(data.currentStep + 1, 5));
+  const nextStep = () => setStep(Math.min(data.currentStep + 1, 4));
   const prevStep = () => setStep(Math.max(data.currentStep - 1, 1));
 
   return (
@@ -78,7 +77,6 @@ export default function ApplicationWizard() {
               {data.currentStep === 2 && <Step2 />}
               {data.currentStep === 3 && <Step3 />}
               {data.currentStep === 4 && <Step4 />}
-              {data.currentStep === 5 && <Step5 />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -97,7 +95,7 @@ export default function ApplicationWizard() {
           <div className="flex flex-col items-center">
             <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-1">Section</div>
             <div className="text-lg font-black text-brand-slate">
-              {data.currentStep} <span className="text-slate-300">/</span> 5
+              {data.currentStep} <span className="text-slate-300">/</span> 4
             </div>
           </div>
 
@@ -105,7 +103,7 @@ export default function ApplicationWizard() {
             onClick={nextStep}
             className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
           >
-            {data.currentStep === 5 ? "Submit Profile" : "Continue"} <ChevronRight className="ml-2 w-5 h-5" />
+            {data.currentStep === 4 ? "Submit Profile" : "Continue"} <ChevronRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </motion.div>

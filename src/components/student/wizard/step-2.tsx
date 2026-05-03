@@ -2,7 +2,7 @@
 import { useApplicationStore } from "@/lib/store/use-application-store";
 import { Input } from "@/components/ui/input";
 import { MALAWI_TAS } from "@/lib/constants/malawi-data";
-import { Upload, CheckCircle2 } from "lucide-react";
+import { Upload, CheckCircle2, User, Users, HeartHandshake, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const selectClass = "w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none focus:border-brand-blue transition-colors";
@@ -11,7 +11,7 @@ const inputClass = "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-
 
 function FileUploadField({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
   return (
-    <div>
+    <div className="max-w-sm">
       <label className={labelClass}>{label}</label>
       <label className={cn(
         "border-2 border-dashed rounded-2xl p-5 flex items-center gap-4 cursor-pointer transition-all",
@@ -33,80 +33,171 @@ function FileUploadField({ label, file, onChange }: { label: string; file: File 
   );
 }
 
+function SectionHeader({ title, icon: Icon }: { title: string; icon: any }) {
+  return (
+    <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+      <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+        <Icon size={18} />
+      </div>
+      <h3 className="font-black text-brand-slate uppercase tracking-tight text-sm">{title}</h3>
+    </div>
+  );
+}
+
 export default function Step2() {
   const { data, updateFamily } = useApplicationStore();
   const f = data.family;
 
   return (
-    <div className="space-y-10">
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className={labelClass}>Guardian First Name</label>
-          <Input className={inputClass} placeholder="First name" value={f.guardianFirstName} onChange={(e) => updateFamily({ guardianFirstName: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <label className={labelClass}>Guardian Surname</label>
-          <Input className={inputClass} placeholder="Surname" value={f.guardianSurname} onChange={(e) => updateFamily({ guardianSurname: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <label className={labelClass}>Profession</label>
-          <Input className={inputClass} placeholder="e.g. Farmer, Teacher" value={f.guardianProfession} onChange={(e) => updateFamily({ guardianProfession: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <label className={labelClass}>Date of Birth</label>
-          <Input type="date" className={inputClass} value={f.guardianDob} onChange={(e) => updateFamily({ guardianDob: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <label className={labelClass}>Email Address</label>
-          <Input type="email" className={inputClass} placeholder="guardian@email.com" value={f.guardianEmail} onChange={(e) => updateFamily({ guardianEmail: e.target.value })} />
-        </div>
-        <div className="space-y-2 w-full">
-          <label className={labelClass}>T/A (Traditional Authority)</label>
-          <select className={selectClass} value={f.guardianTa} onChange={(e) => updateFamily({ guardianTa: e.target.value })}>
-            <option value="">Select T/A</option>
-            {MALAWI_TAS.map((t, i) => <option key={`ta-${i}`} value={t}>{t}</option>)}
+    <div className="space-y-12">
+      {/* 1. Parental Status Selection */}
+      <div className="max-w-md">
+        <label className={labelClass}>Household Parental Status</label>
+        <div className="relative">
+          <select 
+            className={selectClass} 
+            value={f.parentalStatus} 
+            onChange={(e) => updateFamily({ parentalStatus: e.target.value })}
+          >
+            <option value="">Select status</option>
+            <option value="both">Both Parents Alive</option>
+            <option value="one">One Parent Alive</option>
+            <option value="none">None (Guardian / Next of Kin)</option>
           </select>
-        </div>
-        <div className="space-y-2">
-          <label className={labelClass}>Residential Address</label>
-          <Input className={inputClass} placeholder="e.g. Area 18, Lilongwe" value={f.guardianResidentialAddress} onChange={(e) => updateFamily({ guardianResidentialAddress: e.target.value })} />
-        </div>
-        <div className="space-y-2">
-          <label className={labelClass}>Postal Address</label>
-          <Input className={inputClass} placeholder="P.O. Box 123, Lilongwe" value={f.guardianPostalAddress} onChange={(e) => updateFamily({ guardianPostalAddress: e.target.value })} />
-        </div>
-        <div className="space-y-3 md:col-span-2">
-          <label className={labelClass}>Level of Education</label>
-          <div className="flex flex-wrap gap-6">
-            {["Primary", "Secondary", "Tertiary"].map((lvl) => (
-              <button key={lvl} type="button" onClick={() => updateFamily({ guardianEducationLevel: lvl })}
-                className="flex items-center gap-2.5 group focus:outline-none">
-                <span className={cn(
-                  "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
-                  f.guardianEducationLevel === lvl ? "border-brand-blue" : "border-slate-300 group-hover:border-slate-400"
-                )}>
-                  {f.guardianEducationLevel === lvl && (
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-blue block" />
-                  )}
-                </span>
-                <span className={cn("text-sm font-bold transition-colors",
-                  f.guardianEducationLevel === lvl ? "text-brand-blue" : "text-slate-500 group-hover:text-slate-700"
-                )}>{lvl}</span>
-              </button>
-            ))}
+          <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            <Users size={16} />
           </div>
         </div>
       </div>
 
-      {/* Documents */}
-      <div>
-        <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider mb-4">Document Uploads</p>
-        <div className="grid md:grid-cols-3 gap-4">
-          <FileUploadField label="Death Certificate" file={f.deathCertificateFile} onChange={(file) => updateFamily({ deathCertificateFile: file })} />
-          <FileUploadField label="Guarantor National ID" file={f.guarantorNationalIdFile} onChange={(file) => updateFamily({ guarantorNationalIdFile: file })} />
-          <FileUploadField label="Guarantor Consent Form" file={f.guarantorConsentFile} onChange={(file) => updateFamily({ guarantorConsentFile: file })} />
+      {/* 2. Conditional Details Sections */}
+      {f.parentalStatus === "both" && (
+        <div className="space-y-12 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div>
+            <SectionHeader title="Father's Information" icon={User} />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2"><label className={labelClass}>First Name</label><Input className={inputClass} value={f.fatherFirstName} onChange={(e) => updateFamily({ fatherFirstName: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Surname</label><Input className={inputClass} value={f.fatherSurname} onChange={(e) => updateFamily({ fatherSurname: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} placeholder="e.g. CZ29182" value={f.fatherNationalId} onChange={(e) => updateFamily({ fatherNationalId: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} placeholder="099..." value={f.fatherPhone} onChange={(e) => updateFamily({ fatherPhone: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Profession</label><Input className={inputClass} value={f.fatherProfession} onChange={(e) => updateFamily({ fatherProfession: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>T/A (Traditional Authority)</label>
+                <select className={selectClass} value={f.fatherTa} onChange={(e) => updateFamily({ fatherTa: e.target.value })}>
+                  <option value="">Select T/A</option>
+                  {MALAWI_TAS.map((t, i) => <option key={`fta-${i}`} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2 md:col-span-2"><label className={labelClass}>Residential Address</label><Input className={inputClass} value={f.fatherResidentialAddress} onChange={(e) => updateFamily({ fatherResidentialAddress: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Postal Address</label><Input className={inputClass} value={f.fatherPostalAddress} onChange={(e) => updateFamily({ fatherPostalAddress: e.target.value })} /></div>
+            </div>
+          </div>
+
+          <div>
+            <SectionHeader title="Mother's Information" icon={User} />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2"><label className={labelClass}>First Name</label><Input className={inputClass} value={f.motherFirstName} onChange={(e) => updateFamily({ motherFirstName: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Surname</label><Input className={inputClass} value={f.motherSurname} onChange={(e) => updateFamily({ motherSurname: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.motherNationalId} onChange={(e) => updateFamily({ motherNationalId: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.motherPhone} onChange={(e) => updateFamily({ motherPhone: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Profession</label><Input className={inputClass} value={f.motherProfession} onChange={(e) => updateFamily({ motherProfession: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>T/A</label>
+                <select className={selectClass} value={f.motherTa} onChange={(e) => updateFamily({ motherTa: e.target.value })}>
+                  <option value="">Select T/A</option>
+                  {MALAWI_TAS.map((t, i) => <option key={`mta-${i}`} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2 md:col-span-2"><label className={labelClass}>Residential Address</label><Input className={inputClass} value={f.motherResidentialAddress} onChange={(e) => updateFamily({ motherResidentialAddress: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Postal Address</label><Input className={inputClass} value={f.motherPostalAddress} onChange={(e) => updateFamily({ motherPostalAddress: e.target.value })} /></div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {f.parentalStatus === "one" && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div>
+            <SectionHeader title="Living Parent Information" icon={User} />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2"><label className={labelClass}>First Name</label><Input className={inputClass} value={f.parentFirstName} onChange={(e) => updateFamily({ parentFirstName: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Surname</label><Input className={inputClass} value={f.parentSurname} onChange={(e) => updateFamily({ parentSurname: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.parentNationalId} onChange={(e) => updateFamily({ parentNationalId: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.parentPhone} onChange={(e) => updateFamily({ parentPhone: e.target.value })} /></div>
+              <div className="space-y-2">
+                <label className={labelClass}>Relationship</label>
+                <select className={selectClass} value={f.studentRelationship} onChange={(e) => updateFamily({ studentRelationship: e.target.value })}>
+                  <option value="">Select</option>
+                  <option value="son">Son</option>
+                  <option value="daughter">Daughter</option>
+                </select>
+              </div>
+              <div className="space-y-2"><label className={labelClass}>T/A</label>
+                <select className={selectClass} value={f.parentTa} onChange={(e) => updateFamily({ parentTa: e.target.value })}>
+                  <option value="">Select T/A</option>
+                  {MALAWI_TAS.map((t, i) => <option key={`pta-${i}`} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2 md:col-span-2"><label className={labelClass}>Residential Address</label><Input className={inputClass} value={f.parentResidentialAddress} onChange={(e) => updateFamily({ parentResidentialAddress: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Postal Address</label><Input className={inputClass} value={f.parentPostalAddress} onChange={(e) => updateFamily({ parentPostalAddress: e.target.value })} /></div>
+            </div>
+          </div>
+          <div className="max-w-md p-6 bg-slate-50 rounded-3xl border border-slate-100">
+            <label className={labelClass}>National ID of Deceased Parent</label>
+            <Input className={inputClass} placeholder="Enter National ID" value={f.deceasedParentId} onChange={(e) => updateFamily({ deceasedParentId: e.target.value })} />
+          </div>
+        </div>
+      )}
+
+      {f.parentalStatus === "none" && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div>
+            <SectionHeader title="Guardian / Next of Kin Information" icon={HeartHandshake} />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2"><label className={labelClass}>Guardian First Name</label><Input className={inputClass} value={f.guardianFirstName} onChange={(e) => updateFamily({ guardianFirstName: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Guardian Surname</label><Input className={inputClass} value={f.guardianSurname} onChange={(e) => updateFamily({ guardianSurname: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.guardianNationalId} onChange={(e) => updateFamily({ guardianNationalId: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.guardianPhone} onChange={(e) => updateFamily({ guardianPhone: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Relationship</label><Input className={inputClass} placeholder="e.g. Uncle" value={f.relationshipToGuardian} onChange={(e) => updateFamily({ relationshipToGuardian: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>T/A</label>
+                <select className={selectClass} value={f.guardianTa} onChange={(e) => updateFamily({ guardianTa: e.target.value })}>
+                  <option value="">Select T/A</option>
+                  {MALAWI_TAS.map((t, i) => <option key={`gta-${i}`} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2 md:col-span-2"><label className={labelClass}>Residential Address</label><Input className={inputClass} value={f.guardianResidentialAddress} onChange={(e) => updateFamily({ guardianResidentialAddress: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Postal Address</label><Input className={inputClass} value={f.guardianPostalAddress} onChange={(e) => updateFamily({ guardianPostalAddress: e.target.value })} /></div>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+            <div className="space-y-2">
+              <label className={labelClass}>Deceased Father National ID</label>
+              <Input className={inputClass} value={f.deceasedFatherId} onChange={(e) => updateFamily({ deceasedFatherId: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <label className={labelClass}>Deceased Mother National ID</label>
+              <Input className={inputClass} value={f.deceasedMotherId} onChange={(e) => updateFamily({ deceasedMotherId: e.target.value })} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Document Upload Section (Guarantor Only) */}
+      {f.parentalStatus && (
+        <div className="pt-10 border-t border-slate-100">
+          <SectionHeader title="Required Documentation" icon={Upload} />
+          <FileUploadField 
+            label="Guarantor Consent Form" 
+            file={f.guarantorConsentFile} 
+            onChange={(file) => updateFamily({ guarantorConsentFile: file })} 
+          />
+          <div className="mt-8 flex items-start gap-3 p-5 bg-brand-blue/5 rounded-2xl border border-brand-blue/10">
+            <Mail className="text-brand-blue mt-0.5 shrink-0" size={16} />
+            <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wide leading-relaxed">
+              Verify that the National IDs for deceased records and living guardians are accurate. 
+             
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

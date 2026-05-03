@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, ShieldCheck, AlertCircle, CalendarDays } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { parseUnimaEmail, cn } from "@/lib/utils";
@@ -17,11 +17,8 @@ export default function RegisterPage() {
     firstName: "",
     surname: "",
     email: "",
-    dateOfBirth: "",
     password: "",
     confirmPassword: "",
-    yearOfStudy: "",
-    faculty: "",
   });
   
   const [studentData, setStudentData] = useState<{programme: string, id: string, year: string} | null>(null);
@@ -63,8 +60,6 @@ export default function RegisterPage() {
       formData.firstName &&
       formData.surname &&
       formData.email.endsWith("@unima.ac.mw") &&
-      formData.dateOfBirth &&
-      formData.yearOfStudy &&
       formData.password.length >= 8 &&
       formData.password === formData.confirmPassword &&
       !emailError
@@ -91,6 +86,7 @@ export default function RegisterPage() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="max-w-2xl w-full mx-auto"
       >
+        {/* Branding Header */}
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center justify-center mb-8 hover:scale-105 transition-transform">
             <img src="/mthandizi.png" alt="Mthandizi Logo" className="h-12 w-auto" />
@@ -99,6 +95,7 @@ export default function RegisterPage() {
           <p className="text-slate-500 font-medium mt-2">Join the Mthandizi student profiling platform.</p>
         </div>
 
+        {/* Registration Card */}
         <div className="bg-white p-10 rounded-[40px] shadow-2xl shadow-slate-200/60 border border-slate-100">
           <form className="space-y-7" onSubmit={handleRegister}>
             <div className="grid md:grid-cols-2 gap-x-6 gap-y-7">
@@ -160,49 +157,6 @@ export default function RegisterPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              
-              {/* Date of Birth - Unified Styling */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Date of Birth</label>
-                <div className="relative group">
-                  <Input 
-                    required
-                    type={formData.dateOfBirth ? "date" : "text"}
-                    onFocus={(e) => (e.target.type = "date")}
-                    onBlur={(e) => !formData.dateOfBirth && (e.target.type = "text")}
-                    placeholder="date of birth"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
-                    className="h-14 rounded-2xl bg-white border border-slate-200 px-6 pr-12 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors appearance-none"
-                  />
-                  {/* Custom Calendar Icon - Hidden Native Icon handled by Browser/Tailwind focus */}
-                  <CalendarDays className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none group-focus-within:text-brand-blue transition-colors" size={20} />
-                </div>
-              </div>
-              
-              {/* Year of Study - Unified Styling */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Year of Study</label>
-                <div className="relative">
-                  <select 
-                    className="w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 focus:border-brand-blue focus:ring-0 outline-none appearance-none transition-all cursor-pointer"
-                    value={formData.yearOfStudy}
-                    onChange={(e) => setFormData({...formData, yearOfStudy: e.target.value})}
-                    required
-                  >
-                    <option value="" disabled className="text-slate-400 font-light">year of study</option>
-                    <option value="1">Year 1</option>
-                    <option value="2">Year 2</option>
-                    <option value="3">Year 3</option>
-                    <option value="4">Year 4</option>
-                    <option value="5">Year 5+</option>
-                  </select>
-                  {/* Custom Chevron for select to keep look uniform */}
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-                </div>
-              </div>
 
               {/* Password */}
               <div className="space-y-2 relative">
@@ -219,6 +173,7 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
+                {/* Strength Indicator */}
                 <div className="flex gap-1 mt-2 px-1">
                   {[1, 2, 3, 4].map((step) => (
                     <div key={step} className={cn("h-1.5 w-full rounded-full transition-colors duration-300", currentStrength >= step ? getStrengthColor(currentStrength) : "bg-slate-100")} />
@@ -249,7 +204,11 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-16 bg-brand-blue hover:bg-brand-blueDark text-white font-black rounded-[20px] shadow-xl shadow-brand-blue/20 text-md transition-all active:scale-[0.98]" disabled={!isFormValid() || isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full h-16 bg-brand-blue hover:bg-brand-blueDark text-white font-black rounded-[20px] shadow-xl shadow-brand-blue/20 text-md transition-all active:scale-[0.98]" 
+              disabled={!isFormValid() || isLoading}
+            >
               {isLoading ? (
                 <div className="flex items-center gap-3"><div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />Creating Account...</div>
               ) : (

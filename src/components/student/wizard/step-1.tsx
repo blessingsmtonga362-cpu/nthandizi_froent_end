@@ -3,7 +3,6 @@ import { useApplicationStore } from "@/lib/store/use-application-store";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { MALAWI_DISTRICTS, MALAWI_TAS } from "@/lib/constants/malawi-data";
-import { Upload, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const selectClass = "w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none focus:border-brand-blue transition-colors";
@@ -16,30 +15,6 @@ const PAYMENT_METHODS = [
   { value: "national", label: "National Bank", type: "bank" },
   { value: "standard", label: "Standard Bank", type: "bank" },
 ];
-
-function FileUploadField({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
-  return (
-    <div>
-      <label className={labelClass}>{label}</label>
-      <label className={cn(
-        "border-2 border-dashed rounded-2xl p-5 flex items-center gap-4 cursor-pointer transition-all",
-        file ? "bg-emerald-50/30 border-emerald-100" : "bg-slate-50 border-slate-200 hover:border-brand-blue/30 hover:bg-white"
-      )}>
-        <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-          file ? "bg-emerald-500 text-white" : "bg-white text-slate-400"
-        )}>
-          {file ? <CheckCircle2 size={22} /> : <Upload size={22} />}
-        </div>
-        <div className="min-w-0">
-          <p className="font-black text-brand-slate text-sm truncate">{file ? file.name : "Click to upload"}</p>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PDF or JPEG · Max 5MB</p>
-        </div>
-        <input type="file" accept=".pdf,.jpg,.jpeg" className="hidden" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
-      </label>
-    </div>
-  );
-}
 
 export default function Step1() {
   const { data, updatePersonal, updatePayment } = useApplicationStore();
@@ -142,15 +117,6 @@ export default function Step1() {
         <div className="space-y-2 md:col-span-2">
           <label className={labelClass}>Disability (leave as "None" if not applicable)</label>
           <Input className={inputClass} placeholder="None" value={p.disability} onChange={(e) => updatePersonal({ disability: e.target.value })} />
-        </div>
-      </div>
-
-      {/* Documents */}
-      <div>
-        <p className={labelClass}>Document Uploads</p>
-        <div className="grid md:grid-cols-2 gap-4">
-          <FileUploadField label="Student ID" file={p.studentIdFile} onChange={(f) => updatePersonal({ studentIdFile: f })} />
-          <FileUploadField label="National ID" file={p.nationalIdFile} onChange={(f) => updatePersonal({ nationalIdFile: f })} />
         </div>
       </div>
 

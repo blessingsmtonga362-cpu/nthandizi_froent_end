@@ -18,18 +18,62 @@ export interface PersonalData {
 }
 
 export interface FamilyData {
+  // Parental status selector
+  parentalStatus: string; // "both" | "one" | "none"
+
+  // Both parents alive — father
+  fatherFirstName: string;
+  fatherSurname: string;
+  fatherNationalId: string;
+  fatherPhone: string;
+  fatherProfession: string;
+  fatherTa: string;
+  fatherResidentialAddress: string;
+  fatherPostalAddress: string;
+
+  // Both parents alive — mother
+  motherFirstName: string;
+  motherSurname: string;
+  motherNationalId: string;
+  motherPhone: string;
+  motherProfession: string;
+  motherTa: string;
+  motherResidentialAddress: string;
+  motherPostalAddress: string;
+
+  // One parent alive
+  parentFirstName: string;
+  parentSurname: string;
+  parentNationalId: string;
+  parentPhone: string;
+  studentRelationship: string;
+  parentTa: string;
+  parentResidentialAddress: string;
+  parentPostalAddress: string;
+  deceasedParentId: string;
+
+  // Guardian / next of kin (none alive)
   guardianFirstName: string;
   guardianSurname: string;
+  guardianNationalId: string;
+  guardianPhone: string;
+  relationshipToGuardian: string;
+  guardianTa: string;
+  guardianResidentialAddress: string;
+  guardianPostalAddress: string;
+  deceasedFatherId: string;
+  deceasedMotherId: string;
+
+  // Documents
+  guarantorConsentFile: File | null;
+
+  // Legacy fields kept for review step compatibility
   guardianProfession: string;
   guardianDob: string;
   guardianEmail: string;
-  guardianResidentialAddress: string;
-  guardianPostalAddress: string;
-  guardianTa: string;
   guardianEducationLevel: string;
   deathCertificateFile: File | null;
   guarantorNationalIdFile: File | null;
-  guarantorConsentFile: File | null;
 }
 
 export interface EducationLevel {
@@ -92,10 +136,20 @@ const initialData: ApplicationData = {
     studentIdFile: null, nationalIdFile: null,
   },
   family: {
-    guardianFirstName: '', guardianSurname: '', guardianProfession: '',
-    guardianDob: '', guardianEmail: '', guardianResidentialAddress: '',
-    guardianPostalAddress: '', guardianTa: '', guardianEducationLevel: '',
-    deathCertificateFile: null, guarantorNationalIdFile: null, guarantorConsentFile: null,
+    parentalStatus: '',
+    fatherFirstName: '', fatherSurname: '', fatherNationalId: '', fatherPhone: '',
+    fatherProfession: '', fatherTa: '', fatherResidentialAddress: '', fatherPostalAddress: '',
+    motherFirstName: '', motherSurname: '', motherNationalId: '', motherPhone: '',
+    motherProfession: '', motherTa: '', motherResidentialAddress: '', motherPostalAddress: '',
+    parentFirstName: '', parentSurname: '', parentNationalId: '', parentPhone: '',
+    studentRelationship: '', parentTa: '', parentResidentialAddress: '', parentPostalAddress: '',
+    deceasedParentId: '',
+    guardianFirstName: '', guardianSurname: '', guardianNationalId: '', guardianPhone: '',
+    relationshipToGuardian: '', guardianTa: '', guardianResidentialAddress: '', guardianPostalAddress: '',
+    deceasedFatherId: '', deceasedMotherId: '',
+    guarantorConsentFile: null,
+    guardianProfession: '', guardianDob: '', guardianEmail: '', guardianEducationLevel: '',
+    deathCertificateFile: null, guarantorNationalIdFile: null,
   },
   education: {
     primary: { ...emptyEducationLevel },
