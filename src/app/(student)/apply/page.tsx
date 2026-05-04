@@ -3,22 +3,55 @@
 import { useApplicationStore } from "@/lib/store/use-application-store";
 import { useOfflinePersistence } from "@/hooks/use-offline-persistence";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Step1 from "@/components/student/wizard/step-1";
 import Step2 from "@/components/student/wizard/step-2";
 import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { submitApplication } from "@/lib/api";
 
 const STEPS = ["Personal", "Family", "Education", "Review"];
 
 export default function ApplicationWizard() {
   useOfflinePersistence();
-  const { data, setStep } = useApplicationStore();
+  const { data, setStep, reset } = useApplicationStore();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const router = useRouter();
 
   const nextStep = () => setStep(Math.min(data.currentStep + 1, 4));
   const prevStep = () => setStep(Math.max(data.currentStep - 1, 1));
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      // Strip File objects — they need to be uploaded separately via multipart
+      const payload = {
+        personal: { ...data.personal, studentIdFile: undefined, nationalIdFile: undefined },
+        family: {
+          ...data.family,
+          deathCertificateFile: undefined,
+          guarantorNationalIdFile: undefined,
+          guarantorConsentFile: undefined,
+        },
+        education: data.education,
+        academics: { ...data.academics, transcriptFile: undefined },
+        payment: data.payment,
+      };
+      await submitApplication(payload);
+      reset();
+      router.push("/apply/success");
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : "Submission failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto pb-32 pt-4">
@@ -28,7 +61,6 @@ export default function ApplicationWizard() {
           <h1 className="text-3xl font-black text-brand-slate tracking-tight">Student Profiling</h1>
           <p className="text-slate-500 font-medium mt-1 italic">Provide honest information for accurate assessment.</p>
         </div>
-       
       </div>
 
       {/* Stepper */}
@@ -97,18 +129,36 @@ export default function ApplicationWizard() {
             <div className="text-lg font-black text-brand-slate">
               {data.currentStep} <span className="text-slate-300">/</span> 4
             </div>
+            {submitError && (
+              <p className="text-red-500 text-[10px] font-bold mt-2 text-center max-w-xs">{submitError}</p>
+            )}
           </div>
 
-          <Button
-            onClick={nextStep}
-            className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
-          >
-            {data.currentStep === 4 ? "Submit Profile" : "Continue"} <ChevronRight className="ml-2 w-5 h-5" />
-          </Button>
+          {data.currentStep < 4 ? (
+            <Button
+              onClick={nextStep}
+              className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
+            >
+              Continue <ChevronRight className="ml-2 w-5 h-5" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
+            >
+              {submitting ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Submitting...
+                </div>
+              ) : (
+                <>Submit Profile <ChevronRight className="ml-2 w-5 h-5" /></>
+              )}
+            </Button>
+          )}
         </div>
       </motion.div>
-
-      
     </div>
   );
 }

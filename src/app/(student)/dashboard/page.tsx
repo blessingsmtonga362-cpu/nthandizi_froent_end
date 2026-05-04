@@ -1,15 +1,33 @@
 "use client";
 
-import { Clock, CheckCircle2, ChevronRight, Save, Bell, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Clock, CheckCircle2, ChevronRight, Bell, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { getApplicationStatus, getStoredUser, type ApplicationStatus } from "@/lib/api";
+
+const STEP_LABELS = ["Personal", "Family", "Education", "Review"];
 
 export default function StudentDashboard() {
-  const completedSteps = 2;
-  const totalSteps = 6;
-  const lastSaved = "2 minutes ago";
+  const [status, setStatus] = useState<ApplicationStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const user = getStoredUser();
+
+  useEffect(() => {
+    getApplicationStatus()
+      .then(setStatus)
+      .catch(() => {
+        // Fallback so the page still renders if backend is unreachable
+        setStatus({ status: "draft", completedSteps: 0, totalSteps: STEP_LABELS.length, lastSaved: null, submittedAt: null });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const completedSteps = status?.completedSteps ?? 0;
+  const totalSteps = status?.totalSteps ?? STEP_LABELS.length;
+  const firstName = user?.firstName ?? "Student";
 
   return (
     <motion.div 
@@ -20,7 +38,7 @@ export default function StudentDashboard() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black text-brand-slate tracking-tight">
-            Moni, <span className="text-brand-blue">Dumisani</span>
+            Moni, <span className="text-brand-blue">{firstName}</span>
           </h1>
           <p className="text-slate-500 font-medium mt-1">Ready to complete your profiling process?</p>
         </div>
@@ -41,20 +59,19 @@ export default function StudentDashboard() {
             <div className="flex justify-between items-start mb-10 relative z-10">
               <div>
                 <h3 className="text-2xl font-black text-brand-slate mb-2">Profile Completion</h3>
-                
               </div>
               <div className="px-4 py-1.5 bg-brand-blue/10 text-brand-blue rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                Active Draft
+                {loading ? "Loading..." : status?.status === "submitted" ? "Submitted" : "Active Draft"}
               </div>
             </div>
 
             <div className="space-y-8 relative z-10">
               <div className="flex justify-between items-end">
                 <span className="text-5xl font-black text-brand-slate">
-                  {Math.round((completedSteps / totalSteps) * 100)}<span className="text-2xl text-slate-300">%</span>
+                  {loading ? "—" : Math.round((completedSteps / totalSteps) * 100)}<span className="text-2xl text-slate-300">%</span>
                 </span>
                 <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                  {completedSteps} of {totalSteps} Sections Done
+                  {loading ? "" : `${completedSteps} of ${totalSteps} Sections Done`}
                 </span>
               </div>
               
@@ -72,8 +89,8 @@ export default function StudentDashboard() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4">
-                {["Personal", "Family", "Living", "Academic", "Documents", "Review"].map((name, i) => (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                {STEP_LABELS.map((name, i) => (
                   <div key={i} className={cn(
                     "flex items-center gap-3 p-3 rounded-2xl border transition-all",
                     i < completedSteps ? "bg-emerald-50/50 border-emerald-100" : 
@@ -96,7 +113,10 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <Button className="w-full mt-12 h-16 bg-brand-blue hover:bg-brand-blueDark text-white rounded-2xl text-lg font-black shadow-xl shadow-brand-blue/20 group transition-all hover:scale-[1.02]" asChild>
+            <Button
+              className="w-full mt-12 h-16 bg-brand-blue hover:bg-brand-blueDark text-white rounded-2xl text-lg font-black shadow-xl shadow-brand-blue/20 group transition-all hover:scale-[1.02]"
+              asChild
+            >
               <Link href="/apply">
                 Continue Application
                 <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -104,10 +124,10 @@ export default function StudentDashboard() {
             </Button>
           </div>
 
-        { /*  Announcement Strip */}
+          {/* Announcement Strip */}
           <div className="bg-brand-slate text-white rounded-[2rem] p-8 flex items-center justify-between shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
-                <Sparkles size={80} />
+              <Sparkles size={80} />
             </div>
             <div className="flex items-center gap-6 relative z-10">
               <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
@@ -132,10 +152,10 @@ export default function StudentDashboard() {
             </h4>
             <div className="space-y-8 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-50">
               {[
-                { title: "Account Created", date: "Mar 10, 2024", done: true },
-                { title: "Application Started", date: "Mar 12, 2024", done: true },
-                { title: "Review Phase", date: "Awaiting Submission", done: false },
-                { title: "Final Outcome", date: "Pending", done: false },
+                { title: "Account Created", done: true },
+                { title: "Application Started", done: completedSteps > 0 },
+                { title: "Review Phase", done: status?.status === "reviewing" || status?.status === "approved" },
+                { title: "Final Outcome", done: status?.status === "approved" },
               ].map((item, i) => (
                 <div key={i} className="relative pl-10 group">
                   <div className={cn(
@@ -147,7 +167,9 @@ export default function StudentDashboard() {
                   <p className={cn("text-xs font-black uppercase tracking-widest", item.done ? "text-brand-blue" : "text-slate-300")}>
                     {item.title}
                   </p>
-                  <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">{item.date}</p>
+                  <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
+                    {item.done ? "Completed" : "Pending"}
+                  </p>
                 </div>
               ))}
             </div>

@@ -4,11 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, KeyRound } from "lucide-react";
 import { StudentNav } from "@/components/student/nav";
+import { useAuth } from "@/hooks/use-auth";
+import { logout } from "@/lib/api";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, loading } = useAuth("student");
 
   // Close on outside click
   useEffect(() => {
@@ -21,15 +24,22 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     setOpen(false);
+    await logout();
     router.push("/login");
   };
 
   const handleChangePassword = () => {
     setOpen(false);
-    // placeholder — wire to real flow later
+    // wire to real flow later
   };
+
+  // Block render until auth resolves (only matters when guard is active)
+  if (loading) return null;
+
+  const initials = user ? ([user.firstName?.[0], user.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "ST") : "ST";
+  const displayName = user?.firstName ? `${user.firstName} ${user.lastName ?? ""}`.trim() : (user?.email ?? "Student");
 
   return (
     <div className="flex min-h-screen bg-unima-surface">
@@ -50,8 +60,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-unima-blue leading-none">Dumisani Gondwe</p>
-              <p className="text-[10px] text-unima-slate font-medium uppercase tracking-wider">BSC-COM-14-21</p>
+              <p className="text-sm font-bold text-unima-blue leading-none">{displayName}</p>
+              {user?.registrationNumber && (
+                <p className="text-[10px] text-unima-slate font-medium uppercase tracking-wider">{user.registrationNumber}</p>
+              )}
             </div>
 
             {/* Avatar + Dropdown */}
@@ -60,7 +72,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 onClick={() => setOpen((v) => !v)}
                 className="w-10 h-10 rounded-full bg-unima-gold/20 border-2 border-unima-gold flex items-center justify-center text-unima-blue font-bold hover:bg-unima-gold/30 transition-colors focus:outline-none"
               >
-                DG
+                {initials}
               </button>
 
               {open && (

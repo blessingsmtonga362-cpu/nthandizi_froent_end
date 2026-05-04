@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronDown, Globe, Layers, CheckCircle2 } from "lucide-react";
-// Added useTransform to the imports
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -13,20 +12,16 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
 
-  // NEW: Scroll transformations for the Impact Section
-  // This maps the scroll position (0 to 400px) to opacity (0 to 1) and Y position (100px to 0px)
   const impactOpacity = useTransform(scrollY, [0, 400], [0, 1]);
   const impactY = useTransform(scrollY, [0, 400], [100, 0]);
 
-  // 1. Initial Intro Timer
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsIntro(false);
-    }, 1800); // Increased slightly to enjoy the pulse animation
+    }, 1800);
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Scroll Listener for Header
   useEffect(() => {
     const updateScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -35,7 +30,6 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", updateScroll);
   }, []);
 
-  // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -69,10 +63,7 @@ export default function LandingPage() {
               src="/mthandizi.png" 
               alt="Mthandizi Logo" 
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
-              className={cn(
-                "h-10 w-auto absolute left-0 top-0",
-                !isScrolled ? "brightness-0 invert" : "brightness-100"
-              )} 
+              className="h-10 w-auto absolute left-0 top-0" // Removed the brightness/invert filters here
             />
           )}
         </div>
@@ -92,7 +83,6 @@ export default function LandingPage() {
 
       <main className="flex-1">
         
-        {/* HERO SECTION */}
         <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
           
           <motion.div 
@@ -102,7 +92,6 @@ export default function LandingPage() {
             className="absolute inset-0 z-0"
           />
 
-          {/* INTRO LOGO (ANIMATES ON CENTER THEN FLIES) */}
           <AnimatePresence>
             {isIntro && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
@@ -121,7 +110,6 @@ export default function LandingPage() {
             )}
           </AnimatePresence>
 
-          {/* HERO CONTENT — flex-1 so it fills space above the chevron */}
           <div className="flex-1 flex items-center justify-center w-full relative z-10">
             <motion.div
               variants={containerVariants}
@@ -148,7 +136,6 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* CHEVRON — sits at the bottom in normal flow, perfectly centered */}
           <div className="relative z-10 pb-10 flex justify-center w-full">
             <AnimatePresence>
               {!isIntro && (
@@ -174,9 +161,8 @@ export default function LandingPage() {
           )}
         </section>
 
-        {/* IMPACT SECTION (REVEALS ON SCROLL, DISAPPEARS AT TOP) */}
         <motion.section 
-          style={{ opacity: impactOpacity, y: impactY }} // Tied to scroll progress
+          style={{ opacity: impactOpacity, y: impactY }}
           className="py-32 bg-white relative -mt-20 rounded-t-[60px] z-20 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.3)]"
         >
           <div className="max-w-6xl mx-auto px-6">
@@ -187,7 +173,7 @@ export default function LandingPage() {
 
             <div className="grid md:grid-cols-3 gap-16">
               {[
-                { icon: Globe, title: "1. Clear Eligibility Cliteria", desc: "The system uses a single non-discriminating approach for selecting students who are eligible and the process is highly standardized to enhance equity." },
+                { icon: Globe, title: "1. Clear Eligibility Criteria", desc: "The system uses a single non-discriminating approach for selecting students who are eligible and the process is highly standardized to enhance equity." },
                 { icon: Layers, title: "2. Secure Profiling", desc: "Complete a structured, neutral profile that highlights your academic standing." },
                 { icon: CheckCircle2, title: "3. Direct Updates", desc: "Receive real-time notifications about your status and support decisions." },
               ].map((feature, i) => (
@@ -204,12 +190,10 @@ export default function LandingPage() {
         </motion.section>
       </main>
 
-      {/* FOOTER */}
       <footer className="bg-white text-brand-slate py-20 px-6 border-t border-slate-100">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <img src="/mthandizi.png" alt="Mthandizi" className="h-12 w-auto" />
           <div className="flex gap-12 text-sm font-bold uppercase tracking-wider text-slate-400">
-             
              <Link href="#">Privacy</Link>
              <Link href="#">Support</Link>
           </div>

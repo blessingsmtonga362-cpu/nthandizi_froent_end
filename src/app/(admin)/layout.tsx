@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LayoutDashboard, Handshake, KeyRound, LogOut, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Handshake, KeyRound, LogOut, ChevronRight, Bell } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { logout } from "@/lib/api";
 
 const EXPANDED_W = 256;
 const COLLAPSED_W = 72;
@@ -16,10 +18,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, loading } = useAuth("admin");
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
     { label: "Sponsors", icon: Handshake, href: "/admin/sponsors" },
+    { label: "Notifications", icon: Bell, href: "/admin/notifications" },
   ];
 
   useEffect(() => {
@@ -31,6 +35,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  const handleSignOut = async () => {
+    setDropdownOpen(false);
+    await logout();
+    router.push("/login");
+  };
+
+  // Block render until auth resolves (only matters when guard is active)
+  if (loading) return null;
+
+  const initials = user ? ([user.firstName?.[0], user.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "AD") : "AD";
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -129,7 +144,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               onClick={() => setDropdownOpen((v) => !v)}
               className="w-10 h-10 rounded-xl bg-brand-slate text-white font-bold text-sm flex items-center justify-center hover:bg-brand-slate/80 transition-colors focus:outline-none"
             >
-              AD
+              {initials}
             </button>
 
             {dropdownOpen && (
@@ -143,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </button>
                 <div className="h-px bg-slate-100" />
                 <button
-                  onClick={() => { setDropdownOpen(false); router.push("/login"); }}
+                  onClick={handleSignOut}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <LogOut size={15} />

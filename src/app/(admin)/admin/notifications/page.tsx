@@ -14,9 +14,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  getStudentNotifications,
-  markAllNotificationsRead,
-  clearAllNotifications,
+  getAdminNotifications,
+  markAllAdminNotificationsRead,
+  clearAllAdminNotifications,
   type Notification,
 } from "@/lib/api";
 
@@ -27,25 +27,25 @@ const iconMap = {
   warning: { icon: AlertCircle,  color: "text-amber-500",   bg: "bg-amber-50"   },
 };
 
-export default function NotificationsPage() {
+export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getStudentNotifications()
+    getAdminNotifications()
       .then(setNotifications)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load notifications"))
       .finally(() => setLoading(false));
   }, []);
 
   const handleMarkAllRead = async () => {
-    await markAllNotificationsRead().catch(() => {});
+    await markAllAdminNotificationsRead().catch(() => {});
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
   const handleClearAll = async () => {
-    await clearAllNotifications().catch(() => {});
+    await clearAllAdminNotifications().catch(() => {});
     setNotifications([]);
   };
 
@@ -59,7 +59,7 @@ export default function NotificationsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-black text-brand-slate tracking-tight">Notifications</h1>
-          <p className="text-slate-500 font-medium mt-1">Stay updated on your profiling progress and campus news.</p>
+          <p className="text-slate-500 font-medium mt-1">System alerts and administrative updates.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -142,7 +142,7 @@ export default function NotificationsPage() {
                       {n.type === "urgent" && (
                         <div className="mt-6 flex gap-3">
                           <Button className="bg-brand-blue hover:bg-brand-blueDark text-white h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                            Fix Now
+                            Review Now
                           </Button>
                           <Button variant="ghost" className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400">
                             Dismiss

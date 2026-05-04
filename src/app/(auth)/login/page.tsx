@@ -8,38 +8,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { login, setToken, setStoredUser } from "@/lib/api";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const normalised = email.trim().toLowerCase();
-
-    // Admin account — hardcoded for mock purposes
-    if (normalised === "admin@unima.ac.mw") {
-      setEmailError("");
-      setIsLoading(true);
-      setTimeout(() => router.push("/admin/dashboard"), 1200);
-      return;
-    }
-
-    // Students must use @unima.ac.mw
-    if (!normalised.endsWith("@unima.ac.mw")) {
-      setEmailError("Please use a correct email");
-      return;
-    }
-
-    setEmailError("");
+    setError("");
     setIsLoading(true);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1200);
+
+    try {
+      const { token, user } = await login(email.trim().toLowerCase(), password);
+
+      // Persist session
+      setToken(token);
+      setStoredUser(user);
+
+      // Role-based redirect — the frontend doesn't need to know which email
+      // is admin; the backend tells us via the role field.
+      if (user.role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,25 +78,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (emailError) setEmailError("");
+                  if (error) setError("");
                 }}
                 className={cn(
                   "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors",
-                  emailError ? "border-red-500 ring-red-500" : ""
+                  error ? "border-red-500 ring-red-500" : ""
                 )}
               />
-              <AnimatePresence>
-                {emailError && (
-                  <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-2 flex items-center gap-1.5 ml-1"
-                  >
-                    <AlertCircle className="w-3.5 h-3.5" /> {emailError}
-                  </motion.p>
-                )}
-              </AnimatePresence>
             </div>
 
             {/* Password Field */}
@@ -111,6 +102,11 @@ export default function LoginPage() {
                   required
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError("");
+                  }}
                   className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
                 />
                 <button 
@@ -122,6 +118,20 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {/* Error message */}
+            <AnimatePresence>
+              {error && (
+                <motion.p 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-red-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ml-1"
+                >
+                  <AlertCircle className="w-3.5 h-3.5" /> {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
 
             {/* Sign In Button */}
             <Button 
