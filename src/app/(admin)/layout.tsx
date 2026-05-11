@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LayoutDashboard, Handshake, KeyRound, LogOut, ChevronRight, Bell } from "lucide-react";
+import { LayoutDashboard, Handshake, KeyRound, LogOut, ChevronRight, Bell, UserCircle2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
-import { logout } from "@/lib/api";
+import { logout, getStoredUser, type AuthUser } from "@/lib/api";
 
 const EXPANDED_W = 256;
 const COLLAPSED_W = 72;
@@ -18,7 +18,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { user, loading } = useAuth("admin");
+  const { loading } = useAuth("admin");
+
+  // Read display data directly from localStorage — works regardless of DEV_BYPASS_AUTH
+  const [storedUser, setStoredUser] = useState<AuthUser | null>(null);
+  useEffect(() => {
+    setStoredUser(getStoredUser());
+  }, []);
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
@@ -44,8 +50,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Block render until auth resolves (only matters when guard is active)
   if (loading) return null;
-
-  const initials = user ? ([user.firstName?.[0], user.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "AD") : "AD";
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -137,18 +141,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         className="flex-1"
       >
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-100 px-8 flex items-center justify-end sticky top-0 z-40">
+        {/* Header — matches student portal structure */}
+        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-40">
+          {/* Left — UNIMA logo + name */}
+          <div className="hidden lg:flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto object-contain" />
+            <div className="h-6 w-px bg-slate-200" />
+            <span className="font-bold text-brand-slate text-sm tracking-tight">University of Malawi</span>
+          </div>
+          <div className="lg:hidden flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/mthandizi.png" alt="Mthandizi" style={{ height: "32px", width: "auto" }} />
+          </div>
+
+          {/* Right — profile icon + dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen((v) => !v)}
-              className="w-10 h-10 rounded-xl bg-brand-slate text-white font-bold text-sm flex items-center justify-center hover:bg-brand-slate/80 transition-colors focus:outline-none"
+              className="w-10 h-10 rounded-full bg-brand-slate/10 border-2 border-brand-slate/20 flex items-center justify-center text-brand-slate hover:bg-brand-slate/20 transition-colors focus:outline-none"
+              title={storedUser ? `${storedUser.firstName ?? ""} ${storedUser.lastName ?? ""}`.trim() || "Admin" : "Admin"}
             >
-              {initials}
+              <UserCircle2 size={22} strokeWidth={1.5} />
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                {/* User info inside dropdown */}
+                <div className="px-4 py-3 border-b border-slate-100">
+                  <p className="text-sm font-bold text-brand-slate leading-none truncate">
+                    {storedUser ? `${storedUser.firstName ?? ""} ${storedUser.lastName ?? ""}`.trim() || "Administrator" : "Administrator"}
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">Admin Portal</p>
+                </div>
                 <button
                   onClick={() => { setDropdownOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"

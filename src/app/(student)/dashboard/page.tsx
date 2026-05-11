@@ -19,7 +19,6 @@ export default function StudentDashboard() {
     getApplicationStatus()
       .then(setStatus)
       .catch(() => {
-        // Fallback so the page still renders if backend is unreachable
         setStatus({ status: "draft", completedSteps: 0, totalSteps: STEP_LABELS.length, lastSaved: null, submittedAt: null });
       })
       .finally(() => setLoading(false));
@@ -28,151 +27,149 @@ export default function StudentDashboard() {
   const completedSteps = status?.completedSteps ?? 0;
   const totalSteps = status?.totalSteps ?? STEP_LABELS.length;
   const firstName = user?.firstName ?? "Student";
+  const progressPct = loading ? 0 : Math.round((completedSteps / totalSteps) * 100);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-10 pb-10"
+      className="space-y-8 pb-10"
     >
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-black text-brand-slate tracking-tight">
-            Moni, <span className="text-brand-blue">{firstName}</span>
-          </h1>
-          <p className="text-slate-500 font-medium mt-1">Ready to complete your profiling process?</p>
-        </div>
-        <div className="flex -space-x-2">
-          {[1,2,3].map(i => (
-            <div key={i} className="w-10 h-10 rounded-full border-4 border-brand-surface bg-slate-200" />
-          ))}
-          <div className="w-10 h-10 rounded-full border-4 border-brand-surface bg-brand-blue flex items-center justify-center text-[10px] font-bold text-white">
-            +12
-          </div>
-        </div>
+      {/* Page header */}
+      <header>
+        <h1 className="text-3xl font-black text-brand-slate tracking-tight">
+          Moni, <span className="text-brand-blue">{firstName}</span>
+        </h1>
+        <p className="text-slate-400 font-medium mt-1 text-sm">Ready to complete your profiling process?</p>
       </header>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Application Main Card */}
-          <div className="bg-white rounded-[32px] border border-slate-100 p-8 md:p-10 shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-start mb-10 relative z-10">
-              <div>
-                <h3 className="text-2xl font-black text-brand-slate mb-2">Profile Completion</h3>
-              </div>
-              <div className="px-4 py-1.5 bg-brand-blue/10 text-brand-blue rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                {loading ? "Loading..." : status?.status === "submitted" ? "Submitted" : "Active Draft"}
-              </div>
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* ── Application tracker ── */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
+            {/* Card header */}
+            <div className="flex justify-between items-start mb-6">
+              <h3 className="text-lg font-bold text-brand-slate">Profile Completion</h3>
+              <span className={cn(
+                "px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border",
+                status?.status === "submitted"
+                  ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                  : "bg-blue-50 text-brand-blue border-blue-200"
+              )}>
+                {loading ? "—" : status?.status === "submitted" ? "Submitted" : "Active Draft"}
+              </span>
             </div>
 
-            <div className="space-y-8 relative z-10">
-              <div className="flex justify-between items-end">
-                <span className="text-5xl font-black text-brand-slate">
-                  {loading ? "—" : Math.round((completedSteps / totalSteps) * 100)}<span className="text-2xl text-slate-300">%</span>
-                </span>
-                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                  {loading ? "" : `${completedSteps} of ${totalSteps} Sections Done`}
-                </span>
-              </div>
-              
-              <div className="h-4 w-full bg-slate-50 rounded-full overflow-hidden flex gap-1.5 p-1">
-                {[...Array(totalSteps)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    className={cn(
-                      "h-full rounded-full flex-1 transition-colors duration-1000",
-                      i < completedSteps ? "bg-brand-blue shadow-[0_0_15px_rgba(37,99,235,0.3)]" : "bg-slate-200"
-                    )}
-                  />
-                ))}
-              </div>
+            {/* Progress percentage + label */}
+            <div className="flex justify-between items-end mb-3">
+              <span className="text-4xl font-black text-brand-slate">
+                {loading ? "—" : progressPct}
+                <span className="text-xl text-slate-300 font-bold">%</span>
+              </span>
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                {loading ? "" : `${completedSteps} of ${totalSteps} sections`}
+              </span>
+            </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-                {STEP_LABELS.map((name, i) => (
-                  <div key={i} className={cn(
-                    "flex items-center gap-3 p-3 rounded-2xl border transition-all",
-                    i < completedSteps ? "bg-emerald-50/50 border-emerald-100" : 
-                    i === completedSteps ? "bg-brand-blue/5 border-brand-blue/20" : "bg-white border-slate-100 opacity-50"
-                  )}>
-                    {i < completedSteps ? (
-                      <CheckCircle2 size={18} className="text-emerald-500" />
+            {/* Progress bar */}
+            <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden mb-6">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full bg-brand-blue rounded-full"
+              />
+            </div>
+
+            {/* Step chips */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+              {STEP_LABELS.map((name, i) => {
+                const done = i < completedSteps;
+                const current = i === completedSteps;
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wide transition-colors",
+                      done    ? "bg-emerald-50 border-emerald-200 text-emerald-700" :
+                      current ? "bg-blue-50 border-blue-200 text-brand-blue" :
+                                "bg-slate-50 border-slate-200 text-slate-400"
+                    )}
+                  >
+                    {done ? (
+                      <CheckCircle2 size={14} className="shrink-0" />
                     ) : (
                       <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        i === completedSteps ? "bg-brand-blue animate-ping" : "bg-slate-300"
+                        "w-1.5 h-1.5 rounded-full shrink-0",
+                        current ? "bg-brand-blue" : "bg-slate-300"
                       )} />
                     )}
-                    <span className={cn(
-                      "text-xs font-black uppercase tracking-tight",
-                      i === completedSteps ? "text-brand-blue" : "text-brand-slate"
-                    )}>{name}</span>
+                    {name}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
             <Button
-              className="w-full mt-12 h-16 bg-brand-blue hover:bg-brand-blueDark text-white rounded-2xl text-lg font-black shadow-xl shadow-brand-blue/20 group transition-all hover:scale-[1.02]"
+              className="w-full h-12 bg-brand-blue hover:bg-brand-blueDark text-white rounded-xl font-bold text-sm transition-colors"
               asChild
             >
               <Link href="/apply">
                 Continue Application
-                <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                <ChevronRight size={16} className="ml-2" />
               </Link>
             </Button>
           </div>
 
-          {/* Announcement Strip */}
-          <div className="bg-brand-slate text-white rounded-[2rem] p-8 flex items-center justify-between shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
-              <Sparkles size={80} />
+          {/* Announcement strip */}
+          <div className="bg-brand-slate text-white rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden">
+            <div className="absolute right-4 top-4 opacity-5">
+              <Sparkles size={64} />
             </div>
-            <div className="flex items-center gap-6 relative z-10">
-              <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                <Bell size={24} className="text-brand-blue" />
-              </div>
-              <div>
-                <p className="font-black text-xl tracking-tight">System Update</p>
-                <p className="text-sm text-slate-400 font-medium mt-1">The Mthandizi pilot has been extended for UNIMA students.</p>
-              </div>
-            </div> 
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
+              <Bell size={20} className="text-brand-blue" />
+            </div>
+            <div>
+              <p className="font-bold text-base">System Update</p>
+              <p className="text-sm text-slate-400 mt-0.5">The Mthandizi pilot has been extended for UNIMA students.</p>
+            </div>
           </div>
-        </div> 
+        </div>
 
-        {/* Status Sidebar */}
-        <div className="space-y-8">
-          <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
-            <h4 className="font-black text-brand-slate text-lg mb-8 flex items-center gap-3">
-              <div className="p-2 bg-brand-blue/10 rounded-lg text-brand-blue">
-                <Clock size={20} />
-              </div>
-              Timeline
-            </h4>
-            <div className="space-y-8 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-50">
-              {[
-                { title: "Account Created", done: true },
-                { title: "Application Started", done: completedSteps > 0 },
-                { title: "Review Phase", done: status?.status === "reviewing" || status?.status === "approved" },
-                { title: "Final Outcome", done: status?.status === "approved" },
-              ].map((item, i) => (
-                <div key={i} className="relative pl-10 group">
-                  <div className={cn(
-                    "absolute left-0 top-1 w-8 h-8 rounded-full border-4 border-white z-10 flex items-center justify-center transition-all",
-                    item.done ? "bg-brand-blue text-white shadow-lg shadow-brand-blue/30" : "bg-slate-100 text-slate-300"
-                  )}>
-                    {item.done && <CheckCircle2 size={14} />}
-                  </div>
-                  <p className={cn("text-xs font-black uppercase tracking-widest", item.done ? "text-brand-blue" : "text-slate-300")}>
-                    {item.title}
-                  </p>
-                  <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
-                    {item.done ? "Completed" : "Pending"}
-                  </p>
+        {/* ── Timeline sidebar ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <h4 className="font-bold text-brand-slate text-sm uppercase tracking-widest mb-6 flex items-center gap-2">
+            <Clock size={16} className="text-brand-blue" />
+            Timeline
+          </h4>
+          <div className="space-y-6 relative before:absolute before:left-[13px] before:top-1 before:bottom-1 before:w-px before:bg-slate-100">
+            {[
+              { title: "Account Created",    done: true },
+              { title: "Application Started", done: completedSteps > 0 },
+              { title: "Under Review",        done: status?.status === "reviewing" || status?.status === "approved" },
+              { title: "Final Outcome",       done: status?.status === "approved" },
+            ].map((item, i) => (
+              <div key={i} className="relative pl-9">
+                <div className={cn(
+                  "absolute left-0 top-0.5 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center z-10 transition-colors",
+                  item.done ? "bg-brand-blue" : "bg-slate-100"
+                )}>
+                  {item.done
+                    ? <CheckCircle2 size={13} className="text-white" />
+                    : <div className="w-2 h-2 rounded-full bg-slate-300" />
+                  }
                 </div>
-              ))}
-            </div>
+                <p className={cn(
+                  "text-xs font-bold uppercase tracking-wide leading-none",
+                  item.done ? "text-brand-slate" : "text-slate-300"
+                )}>
+                  {item.title}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                  {item.done ? "Completed" : "Pending"}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

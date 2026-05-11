@@ -1,10 +1,10 @@
 /**
  * Central API client.
  * Set NEXT_PUBLIC_API_URL in your .env.local to point at your backend,
- * e.g.  NEXT_PUBLIC_API_URL=http://localhost:8000/api
+ * e.g.  NEXT_PUBLIC_API_URL=http://localhost:3001
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
@@ -106,7 +106,6 @@ async function request<T>(
     throw new Error(body?.message ?? `Request failed: ${res.status}`);
   }
 
-  // 204 No Content
   if (res.status === 204) return undefined as T;
 
   return res.json() as Promise<T>;
@@ -114,15 +113,68 @@ async function request<T>(
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
-  return request<LoginResponse>("/auth/login", {
+export interface RegisterPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  university: string;
+}
+
+export async function registerUser(payload: RegisterPayload): Promise<{ message: string }> {
+  return request<{ message: string }>("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(payload),
   });
 }
 
+export async function verifyOtp(email: string, otp: string): Promise<{ message: string }> {
+  return request<{ message: string }>("/auth/verify-otp", {
+    method: "POST",
+    body: JSON.stringify({ email, otp }),
+  });
+}
+
+export async function resendOtp(email: string): Promise<{ message: string }> {
+  return request<{ message: string }>("/auth/resend-otp", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  const raw = await request<{ access_token: string }>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+
+  // Decode the JWT payload to extract user info.
+  // The backend signs it — we just read the claims.
+  const payloadBase64 = raw.access_token.split(".")[1];
+  const payload = JSON.parse(atob(payloadBase64)) as {
+    sub: string;
+    email: string;
+    role: "student" | "admin";
+    firstName?: string;
+    lastName?: string;
+    registrationNumber?: string;
+  };
+
+  return {
+    token: raw.access_token,
+    user: {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      registrationNumber: payload.registrationNumber,
+    },
+  };
+}
+
 export async function logout(): Promise<void> {
-  await request<void>("/auth/logout", { method: "POST" }).catch(() => {});
+  // Backend is stateless JWT — just clear local storage
   removeToken();
 }
 

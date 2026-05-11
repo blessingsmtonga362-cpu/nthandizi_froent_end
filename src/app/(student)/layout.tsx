@@ -2,16 +2,22 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, KeyRound } from "lucide-react";
+import { LogOut, KeyRound, UserCircle2 } from "lucide-react";
 import { StudentNav } from "@/components/student/nav";
 import { useAuth } from "@/hooks/use-auth";
-import { logout } from "@/lib/api";
+import { logout, getStoredUser, type AuthUser } from "@/lib/api";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { user, loading } = useAuth("student");
+  const { loading } = useAuth("student");
+
+  // Read display data directly from localStorage — works regardless of DEV_BYPASS_AUTH
+  const [storedUser, setStoredUser] = useState<AuthUser | null>(null);
+  useEffect(() => {
+    setStoredUser(getStoredUser());
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -38,8 +44,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   // Block render until auth resolves (only matters when guard is active)
   if (loading) return null;
 
-  const initials = user ? ([user.firstName?.[0], user.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "ST") : "ST";
-  const displayName = user?.firstName ? `${user.firstName} ${user.lastName ?? ""}`.trim() : (user?.email ?? "Student");
+  const displayName = storedUser?.firstName
+    ? `${storedUser.firstName} ${storedUser.lastName ?? ""}`.trim()
+    : (storedUser?.email ?? "");
 
   return (
     <div className="flex min-h-screen bg-unima-surface">
@@ -59,24 +66,25 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-unima-blue leading-none">{displayName}</p>
-              {user?.registrationNumber && (
-                <p className="text-[10px] text-unima-slate font-medium uppercase tracking-wider">{user.registrationNumber}</p>
-              )}
-            </div>
-
             {/* Avatar + Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setOpen((v) => !v)}
-                className="w-10 h-10 rounded-full bg-unima-gold/20 border-2 border-unima-gold flex items-center justify-center text-unima-blue font-bold hover:bg-unima-gold/30 transition-colors focus:outline-none"
+                className="w-10 h-10 rounded-full bg-unima-gold/20 border-2 border-unima-gold flex items-center justify-center text-unima-blue hover:bg-unima-gold/30 transition-colors focus:outline-none"
+                title={displayName || undefined}
               >
-                {initials}
+                <UserCircle2 size={22} strokeWidth={1.5} />
               </button>
 
               {open && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden z-50">
+                  {/* User info inside dropdown */}
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <p className="text-sm font-bold text-brand-slate leading-none truncate">{displayName || "Student"}</p>
+                    {storedUser?.registrationNumber && (
+                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">{storedUser.registrationNumber}</p>
+                    )}
+                  </div>
                   <button
                     onClick={handleChangePassword}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-brand-slate hover:bg-slate-50 transition-colors"
