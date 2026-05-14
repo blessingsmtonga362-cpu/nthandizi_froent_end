@@ -3,9 +3,17 @@ import { motion } from "framer-motion";
 import { CheckCircle2, ArrowRight, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function SuccessPage() {
-  const refNumber = "APP-" + Math.random().toString(36).substring(2, 11).toUpperCase();
+  const searchParams = useSearchParams();
+  const submittedAt = searchParams.get("submittedAt");
+  const refNumber = submittedAt
+    ? `APP-${new Date(submittedAt).getTime().toString().slice(-9)}`
+    : "APP-PENDING";
+  const submittedDate = submittedAt
+    ? new Date(submittedAt).toLocaleString()
+    : "Just now";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
@@ -27,6 +35,10 @@ export default function SuccessPage() {
           <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
             <span className="text-xs font-bold text-unima-slate uppercase">Reference ID</span>
             <span className="font-mono font-bold text-unima-blue">{refNumber}</span>
+          </div>
+          <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+            <span className="text-xs font-bold text-unima-slate uppercase">Submitted</span>
+            <span className="text-sm font-semibold text-unima-blue">{submittedDate}</span>
           </div>
           <div className="space-y-3 text-left">
             <div className="flex items-center gap-3 text-sm text-unima-blue font-medium">

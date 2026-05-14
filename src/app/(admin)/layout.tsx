@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LayoutDashboard, Handshake, KeyRound, LogOut, ChevronRight, Bell, UserCircle2 } from "lucide-react";
+import { LayoutDashboard, Handshake, CheckCircle2, AlertTriangle, KeyRound, LogOut, ChevronRight, Bell, UserCircle2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { loading } = useAuth("admin");
 
@@ -29,6 +29,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
     { label: "Sponsors", icon: Handshake, href: "/admin/sponsors" },
+    { label: "Approved", icon: CheckCircle2, href: "/admin/approved" },
+    { label: "Flagged", icon: AlertTriangle, href: "/admin/flagged" },
     { label: "Notifications", icon: Bell, href: "/admin/notifications" },
   ];
 
@@ -57,11 +59,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <motion.aside 
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        className="bg-brand-slate text-slate-400 flex flex-col fixed h-full z-50 border-r border-white/5 overflow-hidden shadow-2xl"
+        className="bg-[linear-gradient(180deg,#0f172a_0%,#172554_48%,#155e75_100%)] text-slate-300 flex flex-col fixed h-full z-50 border-r border-white/10 overflow-hidden shadow-2xl"
       >
         {/* Branding Area */}
         <div className={cn(
-          "flex items-center h-20 px-4 shrink-0",
+          "flex items-center h-20 px-4 shrink-0 gap-3",
           expanded ? "justify-between" : "justify-center"
         )}>
           <AnimatePresence initial={false}>
@@ -72,10 +74,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 animate={{ opacity: 1, width: "auto" }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.25 }}
-                className="overflow-hidden"
+                className="overflow-hidden flex-1 min-w-0"
               >
-                <img src="/mthandizi.png" alt="Mthandizi" className="h-8 w-auto brightness-0 invert" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-blue block mt-1">
+                <img src="/mthandizi.png" alt="Mthandizi" className="h-9 w-auto object-contain" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300 block mt-1">
                   Admin Portal
                 </span>
               </motion.div>
@@ -84,7 +86,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
           >
             <motion.span animate={{ rotate: expanded ? 180 : 0 }}>
               <ChevronRight size={18} />
@@ -107,11 +109,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   "flex items-center rounded-xl transition-all duration-200 group relative",
                   expanded ? "px-4 py-3 gap-3" : "px-0 py-3 justify-center",
                   isActive
-                    ? "bg-brand-blue text-white shadow-lg shadow-brand-blue/20"
-                    : "hover:bg-white/5 hover:text-white"
+                    ? "bg-white/14 text-white shadow-lg shadow-slate-950/20 ring-1 ring-white/10"
+                    : "hover:bg-white/8 hover:text-white"
                 )}
               >
-                <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} className={cn(!isActive && "group-hover:text-brand-blue transition-colors")} />
+                <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} className={cn(isActive ? "text-brand-blue" : "text-slate-300 group-hover:text-brand-blue transition-colors")} />
                 
                 <AnimatePresence initial={false}>
                   {expanded && (

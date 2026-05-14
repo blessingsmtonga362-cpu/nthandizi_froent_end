@@ -44,6 +44,44 @@ function SectionHeader({ title, icon: Icon }: { title: string; icon: any }) {
   );
 }
 
+function SiblingsSection() {
+  const { data, updateFamily } = useApplicationStore();
+  const f = data.family;
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader title="Siblings Information" icon={Users} />
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-2">
+          <label className={labelClass}>Number of Siblings</label>
+          <Input type="number" min="0" className={inputClass} value={f.numberOfSiblings} onChange={(e) => updateFamily({ numberOfSiblings: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className={labelClass}>Number Still in School</label>
+          <Input type="number" min="0" className={inputClass} value={f.numberStillInSchool} onChange={(e) => updateFamily({ numberStillInSchool: e.target.value })} />
+        </div>
+      </div>
+      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/70 p-6">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-5">Siblings Still in School by Level</p>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <label className={labelClass}>Primary</label>
+            <Input type="number" min="0" className={inputClass} value={f.siblingsInPrimary} onChange={(e) => updateFamily({ siblingsInPrimary: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <label className={labelClass}>Secondary</label>
+            <Input type="number" min="0" className={inputClass} value={f.siblingsInSecondary} onChange={(e) => updateFamily({ siblingsInSecondary: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <label className={labelClass}>Tertiary</label>
+            <Input type="number" min="0" className={inputClass} value={f.siblingsInTertiary} onChange={(e) => updateFamily({ siblingsInTertiary: e.target.value })} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Step2() {
   const { data, updateFamily } = useApplicationStore();
   const f = data.family;
@@ -81,6 +119,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} placeholder="e.g. CZ29182" value={f.fatherNationalId} onChange={(e) => updateFamily({ fatherNationalId: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} placeholder="099..." value={f.fatherPhone} onChange={(e) => updateFamily({ fatherPhone: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Profession</label><Input className={inputClass} value={f.fatherProfession} onChange={(e) => updateFamily({ fatherProfession: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Monthly Income</label><Input type="number" min="0" className={inputClass} value={f.fatherMonthlyIncome} onChange={(e) => updateFamily({ fatherMonthlyIncome: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>T/A (Traditional Authority)</label>
                 <select className={selectClass} value={f.fatherTa} onChange={(e) => updateFamily({ fatherTa: e.target.value })}>
                   <option value="">Select T/A</option>
@@ -100,6 +139,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.motherNationalId} onChange={(e) => updateFamily({ motherNationalId: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.motherPhone} onChange={(e) => updateFamily({ motherPhone: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Profession</label><Input className={inputClass} value={f.motherProfession} onChange={(e) => updateFamily({ motherProfession: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Monthly Income</label><Input type="number" min="0" className={inputClass} value={f.motherMonthlyIncome} onChange={(e) => updateFamily({ motherMonthlyIncome: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>T/A</label>
                 <select className={selectClass} value={f.motherTa} onChange={(e) => updateFamily({ motherTa: e.target.value })}>
                   <option value="">Select T/A</option>
@@ -122,6 +162,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>Surname</label><Input className={inputClass} value={f.parentSurname} onChange={(e) => updateFamily({ parentSurname: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.parentNationalId} onChange={(e) => updateFamily({ parentNationalId: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.parentPhone} onChange={(e) => updateFamily({ parentPhone: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Monthly Income</label><Input type="number" min="0" className={inputClass} value={f.parentMonthlyIncome} onChange={(e) => updateFamily({ parentMonthlyIncome: e.target.value })} /></div>
               <div className="space-y-2">
                 <label className={labelClass}>Relationship</label>
                 <select className={selectClass} value={f.studentRelationship} onChange={(e) => updateFamily({ studentRelationship: e.target.value })}>
@@ -156,6 +197,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>Guardian Surname</label><Input className={inputClass} value={f.guardianSurname} onChange={(e) => updateFamily({ guardianSurname: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.guardianNationalId} onChange={(e) => updateFamily({ guardianNationalId: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.guardianPhone} onChange={(e) => updateFamily({ guardianPhone: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Monthly Income</label><Input type="number" min="0" className={inputClass} value={f.guardianMonthlyIncome} onChange={(e) => updateFamily({ guardianMonthlyIncome: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Relationship</label><Input className={inputClass} placeholder="e.g. Uncle" value={f.relationshipToGuardian} onChange={(e) => updateFamily({ relationshipToGuardian: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>T/A</label>
                 <select className={selectClass} value={f.guardianTa} onChange={(e) => updateFamily({ guardianTa: e.target.value })}>
@@ -179,6 +221,8 @@ export default function Step2() {
           </div>
         </div>
       )}
+
+      <SiblingsSection />
 
       {/* 3. Document Upload Section (Guarantor Only) */}
       {f.parentalStatus && (

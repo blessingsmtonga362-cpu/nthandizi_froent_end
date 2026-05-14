@@ -28,6 +28,7 @@ export default function StudentDashboard() {
   const totalSteps = status?.totalSteps ?? STEP_LABELS.length;
   const firstName = user?.firstName ?? "Student";
   const progressPct = loading ? 0 : Math.round((completedSteps / totalSteps) * 100);
+  const isSubmitted = status?.status === "submitted" || status?.status === "reviewing" || status?.status === "approved";
 
   return (
     <motion.div
@@ -52,11 +53,11 @@ export default function StudentDashboard() {
               <h3 className="text-lg font-bold text-brand-slate">Profile Completion</h3>
               <span className={cn(
                 "px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border",
-                status?.status === "submitted"
+                isSubmitted
                   ? "bg-emerald-50 text-emerald-600 border-emerald-200"
                   : "bg-blue-50 text-brand-blue border-blue-200"
               )}>
-                {loading ? "—" : status?.status === "submitted" ? "Submitted" : "Active Draft"}
+                {loading ? "—" : isSubmitted ? "Submitted" : "Active Draft"}
               </span>
             </div>
 
@@ -114,8 +115,8 @@ export default function StudentDashboard() {
               className="w-full h-12 bg-brand-blue hover:bg-brand-blueDark text-white rounded-xl font-bold text-sm transition-colors"
               asChild
             >
-              <Link href="/apply">
-                Continue Application
+              <Link href={isSubmitted ? "/status" : "/apply"}>
+                {isSubmitted ? "Track Application" : "Continue Application"}
                 <ChevronRight size={16} className="ml-2" />
               </Link>
             </Button>

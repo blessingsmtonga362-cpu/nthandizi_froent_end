@@ -67,7 +67,7 @@ function Field({ label, value }: { label: string; value?: string | null }) {
 
 export default function Step4() {
   const { data, setStep } = useApplicationStore();
-  const { personal: p, family: f, education: e, payment: pay } = data;
+  const { personal: p, family: f, education: e, academics: a, payment: pay } = data;
 
   const PAYMENT_LABELS: Record<string, string> = {
     airtel: "Airtel Money", tnm: "TNM Mpamba",
@@ -115,6 +115,7 @@ export default function Step4() {
                 <Field label="National ID" value={f.fatherNationalId} />
                 <Field label="Phone" value={f.fatherPhone} />
                 <Field label="Profession" value={f.fatherProfession} />
+                <Field label="Monthly Income" value={f.fatherMonthlyIncome ? `MWK ${f.fatherMonthlyIncome}` : undefined} />
                 <Field label="T/A" value={f.fatherTa} />
                 <Field label="Residential Address" value={f.fatherResidentialAddress} />
                 <Field label="Postal Address" value={f.fatherPostalAddress} />
@@ -128,6 +129,7 @@ export default function Step4() {
                 <Field label="National ID" value={f.motherNationalId} />
                 <Field label="Phone" value={f.motherPhone} />
                 <Field label="Profession" value={f.motherProfession} />
+                <Field label="Monthly Income" value={f.motherMonthlyIncome ? `MWK ${f.motherMonthlyIncome}` : undefined} />
                 <Field label="T/A" value={f.motherTa} />
                 <Field label="Residential Address" value={f.motherResidentialAddress} />
                 <Field label="Postal Address" value={f.motherPostalAddress} />
@@ -145,6 +147,7 @@ export default function Step4() {
                 <Field label="Surname" value={f.parentSurname} />
                 <Field label="National ID" value={f.parentNationalId} />
                 <Field label="Phone" value={f.parentPhone} />
+                <Field label="Monthly Income" value={f.parentMonthlyIncome ? `MWK ${f.parentMonthlyIncome}` : undefined} />
                 <Field label="Relationship" value={f.studentRelationship} />
                 <Field label="T/A" value={f.parentTa} />
                 <Field label="Residential Address" value={f.parentResidentialAddress} />
@@ -166,6 +169,7 @@ export default function Step4() {
                 <Field label="Surname" value={f.guardianSurname} />
                 <Field label="National ID" value={f.guardianNationalId} />
                 <Field label="Phone" value={f.guardianPhone} />
+                <Field label="Monthly Income" value={f.guardianMonthlyIncome ? `MWK ${f.guardianMonthlyIncome}` : undefined} />
                 <Field label="Relationship" value={f.relationshipToGuardian} />
                 <Field label="T/A" value={f.guardianTa} />
                 <Field label="Residential Address" value={f.guardianResidentialAddress} />
@@ -182,11 +186,30 @@ export default function Step4() {
         {!f.parentalStatus && (
           <p className="text-sm text-slate-400 italic">No parental status selected.</p>
         )}
+        <div className="pt-6 border-t border-slate-50">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Siblings</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Field label="Number of Siblings" value={f.numberOfSiblings} />
+            <Field label="Number Still in School" value={f.numberStillInSchool} />
+            <Field label="Primary" value={f.siblingsInPrimary} />
+            <Field label="Secondary" value={f.siblingsInSecondary} />
+            <Field label="Tertiary" value={f.siblingsInTertiary} />
+          </div>
+        </div>
       </ReviewCard>
 
       {/* Education */}
       <ReviewCard title="Education Background" onEdit={() => setStep(3)}>
         <div className="space-y-6">
+          <div>
+            <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest mb-3">current academics</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <Field label="Program of Study" value={a.programOfStudy} />
+              <Field label="Department" value={a.department} />
+              <Field label="Year of Study" value={a.yearOfStudy} />
+            </div>
+          </div>
+
           {(["primary", "secondary", "tertiary"] as const).map((lvl) => (
             <div key={lvl}>
               <p className={cn("text-[10px] font-black uppercase tracking-widest mb-3",

@@ -10,7 +10,7 @@ import { getStoredUser, type AuthUser } from "@/lib/api";
  * When false: unauthenticated users are sent to /login,
  *             wrong-role users are sent to their correct portal.
  */
-const DEV_BYPASS_AUTH = true;
+const DEV_BYPASS_AUTH = process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true";
 
 export function useAuth(requiredRole?: "student" | "admin") {
   const router = useRouter();

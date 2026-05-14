@@ -27,6 +27,7 @@ export interface FamilyData {
   fatherNationalId: string;
   fatherPhone: string;
   fatherProfession: string;
+  fatherMonthlyIncome: string;
   fatherTa: string;
   fatherResidentialAddress: string;
   fatherPostalAddress: string;
@@ -37,6 +38,7 @@ export interface FamilyData {
   motherNationalId: string;
   motherPhone: string;
   motherProfession: string;
+  motherMonthlyIncome: string;
   motherTa: string;
   motherResidentialAddress: string;
   motherPostalAddress: string;
@@ -46,6 +48,7 @@ export interface FamilyData {
   parentSurname: string;
   parentNationalId: string;
   parentPhone: string;
+  parentMonthlyIncome: string;
   studentRelationship: string;
   parentTa: string;
   parentResidentialAddress: string;
@@ -57,12 +60,19 @@ export interface FamilyData {
   guardianSurname: string;
   guardianNationalId: string;
   guardianPhone: string;
+  guardianMonthlyIncome: string;
   relationshipToGuardian: string;
   guardianTa: string;
   guardianResidentialAddress: string;
   guardianPostalAddress: string;
   deceasedFatherId: string;
   deceasedMotherId: string;
+
+  numberOfSiblings: string;
+  numberStillInSchool: string;
+  siblingsInPrimary: string;
+  siblingsInSecondary: string;
+  siblingsInTertiary: string;
 
   // Documents
   guarantorConsentFile: File | null;
@@ -138,15 +148,16 @@ const initialData: ApplicationData = {
   family: {
     parentalStatus: '',
     fatherFirstName: '', fatherSurname: '', fatherNationalId: '', fatherPhone: '',
-    fatherProfession: '', fatherTa: '', fatherResidentialAddress: '', fatherPostalAddress: '',
+    fatherProfession: '', fatherMonthlyIncome: '', fatherTa: '', fatherResidentialAddress: '', fatherPostalAddress: '',
     motherFirstName: '', motherSurname: '', motherNationalId: '', motherPhone: '',
-    motherProfession: '', motherTa: '', motherResidentialAddress: '', motherPostalAddress: '',
+    motherProfession: '', motherMonthlyIncome: '', motherTa: '', motherResidentialAddress: '', motherPostalAddress: '',
     parentFirstName: '', parentSurname: '', parentNationalId: '', parentPhone: '',
-    studentRelationship: '', parentTa: '', parentResidentialAddress: '', parentPostalAddress: '',
+    parentMonthlyIncome: '', studentRelationship: '', parentTa: '', parentResidentialAddress: '', parentPostalAddress: '',
     deceasedParentId: '',
     guardianFirstName: '', guardianSurname: '', guardianNationalId: '', guardianPhone: '',
-    relationshipToGuardian: '', guardianTa: '', guardianResidentialAddress: '', guardianPostalAddress: '',
+    guardianMonthlyIncome: '', relationshipToGuardian: '', guardianTa: '', guardianResidentialAddress: '', guardianPostalAddress: '',
     deceasedFatherId: '', deceasedMotherId: '',
+    numberOfSiblings: '', numberStillInSchool: '', siblingsInPrimary: '', siblingsInSecondary: '', siblingsInTertiary: '',
     guarantorConsentFile: null,
     guardianProfession: '', guardianDob: '', guardianEmail: '', guardianEducationLevel: '',
     deathCertificateFile: null, guarantorNationalIdFile: null,

@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     firstName: "",
     surname: "",
+    registrationNumber: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -52,6 +53,7 @@ export default function RegisterPage() {
   const isFormValid = () =>
     formData.firstName.trim() &&
     formData.surname.trim() &&
+    formData.registrationNumber.trim() &&
     formData.email.endsWith("@unima.ac.mw") &&
     formData.password.length >= 8 &&
     formData.password === formData.confirmPassword &&
@@ -68,11 +70,12 @@ export default function RegisterPage() {
       await registerUser({
         firstName: formData.firstName.trim(),
         lastName: formData.surname.trim(),
+        registrationNumber: formData.registrationNumber.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         university: "unima",
       });
-      router.push(`/verify?email=${encodeURIComponent(formData.email.trim().toLowerCase())}`);
+      router.push("/login");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -129,6 +132,17 @@ export default function RegisterPage() {
               </div>
 
               {/* University Email */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Registration Number</label>
+                <Input
+                  required
+                  placeholder="e.g. UNIMA20240123"
+                  value={formData.registrationNumber}
+                  onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+                  className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
+                />
+              </div>
+
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">University Email</label>
                 <Input

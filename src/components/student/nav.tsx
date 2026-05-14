@@ -19,7 +19,7 @@ const COLLAPSED_W = 72;
 
 export function StudentNav() {
   const pathname = usePathname();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <>
@@ -27,11 +27,11 @@ export function StudentNav() {
       <motion.aside
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        className="hidden lg:flex flex-col bg-brand-slate h-screen sticky top-0 left-0 text-white overflow-hidden shrink-0"
+        className="hidden lg:flex flex-col bg-[linear-gradient(180deg,#0f172a_0%,#16233f_52%,#1d4f78_100%)] h-screen sticky top-0 left-0 text-white overflow-hidden shrink-0 border-r border-white/10 shadow-2xl"
       >
         {/* Logo area */}
         <div className={cn(
-          "flex items-center h-20 px-4 shrink-0",
+          "flex items-center h-20 px-4 shrink-0 gap-3",
           expanded ? "justify-between" : "justify-center"
         )}>
           <AnimatePresence initial={false}>
@@ -42,13 +42,16 @@ export function StudentNav() {
                 animate={{ opacity: 1, width: "auto" }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="overflow-hidden"
+                className="overflow-hidden flex-1 min-w-0"
               >
                 <img
                   src="/mthandizi.png"
                   alt="Mthandizi"
-                  className="h-8 w-auto brightness-0 invert"
+                  className="h-9 w-auto object-contain"
                 />
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300 block mt-1">
+                  Student Portal
+                </span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -59,7 +62,7 @@ export function StudentNav() {
             title={expanded ? "Collapse sidebar" : "Expand sidebar"}
             className={cn(
               "w-8 h-8 rounded-xl flex items-center justify-center transition-colors shrink-0",
-              "text-slate-400 hover:text-white hover:bg-white/10"
+              "text-slate-300 hover:text-white hover:bg-white/10"
             )}
           >
             <motion.span
@@ -88,14 +91,14 @@ export function StudentNav() {
                   "flex items-center gap-3 rounded-2xl transition-colors duration-200 group relative",
                   expanded ? "px-4 py-3" : "px-0 py-3 justify-center",
                   isActive
-                    ? "bg-brand-blue text-white shadow-lg shadow-brand-blue/20"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "bg-white/14 text-white shadow-lg shadow-slate-950/20 ring-1 ring-white/10"
+                    : "text-slate-300 hover:text-white hover:bg-white/8"
                 )}
               >
                 <item.icon
                   size={20}
                   strokeWidth={isActive ? 2.5 : 2}
-                  className="shrink-0"
+                  className={cn("shrink-0", isActive ? "text-brand-blue" : "text-slate-300 group-hover:text-brand-blue")}
                 />
                 <AnimatePresence initial={false}>
                   {expanded && (

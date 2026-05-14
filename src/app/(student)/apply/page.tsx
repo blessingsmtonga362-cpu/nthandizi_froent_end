@@ -16,6 +16,65 @@ import { submitApplication } from "@/lib/api";
 
 const STEPS = ["Personal", "Family", "Education", "Review"];
 
+type EducationDraft = {
+  schoolName?: string;
+  tuitionFee?: string;
+  yearCompleted?: string;
+  whoPaidFees?: string;
+};
+
+type AcademicsDraft = {
+  programOfStudy?: string;
+  department?: string;
+  yearOfStudy?: string;
+};
+
+function getIncompleteEducationMessage(label: string, level: EducationDraft): string | null {
+  const values = [
+    level.schoolName?.trim(),
+    level.tuitionFee?.trim(),
+    level.yearCompleted?.trim(),
+    level.whoPaidFees?.trim(),
+  ];
+
+  const hasAnyValue = values.some((value) => Boolean(value));
+  if (!hasAnyValue) return null;
+
+  const missingFields: string[] = [];
+
+  if (!level.schoolName?.trim()) missingFields.push("school name");
+  if (!level.tuitionFee?.trim()) missingFields.push("tuition fee");
+  if (!level.yearCompleted?.trim()) missingFields.push("year completed");
+  if (!level.whoPaidFees?.trim()) missingFields.push("who paid fees");
+
+  if (missingFields.length === 0) return null;
+
+  return `${label} education is incomplete. Please provide ${missingFields.join(", ")}.`;
+}
+
+function getIncompleteAcademicsMessage(academics: AcademicsDraft): string | null {
+  const values = [
+    academics.programOfStudy?.trim(),
+    academics.department?.trim(),
+    academics.yearOfStudy?.trim(),
+  ];
+
+  const hasAnyValue = values.some((value) => Boolean(value));
+  if (!hasAnyValue) {
+    return "Academic details are required. Please provide your program of study, department, and year of study.";
+  }
+
+  const missingFields: string[] = [];
+
+  if (!academics.programOfStudy?.trim()) missingFields.push("program of study");
+  if (!academics.department?.trim()) missingFields.push("department");
+  if (!academics.yearOfStudy?.trim()) missingFields.push("year of study");
+
+  if (missingFields.length === 0) return null;
+
+  return `Academic details are incomplete. Please provide ${missingFields.join(", ")}.`;
+}
+
 export default function ApplicationWizard() {
   useOfflinePersistence();
   const { data, setStep, reset } = useApplicationStore();
@@ -30,6 +89,20 @@ export default function ApplicationWizard() {
     setSubmitting(true);
     setSubmitError("");
     try {
+      const educationValidationError =
+        getIncompleteEducationMessage("Primary", data.education.primary) ??
+        getIncompleteEducationMessage("Secondary", data.education.secondary) ??
+        getIncompleteEducationMessage("Tertiary", data.education.tertiary);
+
+      if (educationValidationError) {
+        throw new Error(educationValidationError);
+      }
+
+      const academicsValidationError = getIncompleteAcademicsMessage(data.academics);
+      if (academicsValidationError) {
+        throw new Error(academicsValidationError);
+      }
+
       // Strip File objects — they need to be uploaded separately via multipart
       const payload = {
         personal: { ...data.personal, studentIdFile: undefined, nationalIdFile: undefined },
@@ -43,9 +116,13 @@ export default function ApplicationWizard() {
         academics: { ...data.academics, transcriptFile: undefined },
         payment: data.payment,
       };
-      await submitApplication(payload);
+      const response = await submitApplication(payload);
       reset();
-      router.push("/apply/success");
+      const params = new URLSearchParams({
+        submittedAt: response.submittedAt,
+        status: response.applicationStatus,
+      });
+      router.push(`/apply/success?${params.toString()}`);
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : "Submission failed. Please try again.");
     } finally {

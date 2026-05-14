@@ -39,10 +39,13 @@ export function setStoredUser(user: AuthUser): void {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type AuthRole = "student" | "admin";
+export type BackendRole = "user" | "admin";
+
 export interface AuthUser {
   id: string;
   email: string;
-  role: "student" | "admin";
+  role: AuthRole;
   firstName?: string;
   lastName?: string;
   registrationNumber?: string;
@@ -51,6 +54,10 @@ export interface AuthUser {
 export interface LoginResponse {
   token: string;
   user: AuthUser;
+}
+
+function normalizeRole(role: BackendRole): AuthRole {
+  return role === "admin" ? "admin" : "student";
 }
 
 export interface Notification {
@@ -70,6 +77,41 @@ export interface ApplicationStatus {
   submittedAt: string | null;
 }
 
+interface RawApplicationStatus {
+  status?: string | null;
+  completedSteps?: number;
+  totalSteps?: number;
+  lastSaved?: string | null;
+  submittedAt?: string | null;
+  applicationStatus?: string | null;
+}
+
+interface ReviewApplicationResponse {
+  success: boolean;
+  data: {
+    personalDetails: unknown | null;
+    academicDetails: unknown | null;
+    familyDetails: unknown | null;
+    education: {
+      primary?: unknown[];
+      secondary?: unknown[];
+      tertiary?: unknown[];
+    };
+  };
+  lastUpdated?: string;
+}
+
+export interface SubmitApplicationResponse {
+  success: boolean;
+  message: string;
+  submittedAt: string;
+  applicationStatus: string;
+}
+
+export async function getAcademicYearOptions(): Promise<number[]> {
+  return request<number[]>("/academic-details/year-options");
+}
+
 export interface DashboardStats {
   totalApplications: number;
   approvedSupport: number;
@@ -77,11 +119,232 @@ export interface DashboardStats {
   priorityQueue: PriorityStudent[];
 }
 
+export type AdminApplicantStatus = "pending_review" | "approved" | "flagged";
+
 export interface PriorityStudent {
   name: string;
   id: string;
+  registrationNumber?: string;
   program: string;
   score: number;
+  status: AdminApplicantStatus;
+}
+
+export interface AdminApplicantProfile {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  registrationNumber: string;
+  status: AdminApplicantStatus;
+  reviewComments: string | null;
+}
+
+export interface AdminApplicantListItem extends AdminApplicantProfile {
+  program: string;
+  department: string | null;
+  yearOfStudy: number | null;
+}
+
+export interface AdminApplicantsByStatusResponse {
+  status: Extract<AdminApplicantStatus, "approved" | "flagged">;
+  count: number;
+  applicants: AdminApplicantListItem[];
+}
+
+export interface SponsorListItem {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  requestedSlots: number;
+  allocatedCount: number;
+  status: "completed" | "partial" | "pending";
+}
+
+export interface SponsorApplicant {
+  userId: string;
+  rank: number;
+  score: number;
+  name: string;
+  email: string;
+  registrationNumber: string;
+  program: string;
+  department: string | null;
+  yearOfStudy: number | null;
+}
+
+export interface SponsorDetails extends SponsorListItem {
+  logoFilename?: string | null;
+  applicants: SponsorApplicant[];
+}
+
+export interface AdminPersonalDetails {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  nationalIdNumber?: string;
+  homeDistrict?: string;
+  traditionalAuthority?: string;
+  physicalAddress?: string;
+  dateOfBirth?: string;
+  registrationNumber?: string;
+  disability?: string;
+  maritalStatus?: string;
+  gender?: string;
+  paymentMethod?: string;
+  paymentPhoneNumber?: string;
+  bankName?: string;
+  bankAccount?: string;
+  accountName?: string;
+}
+
+export interface AdminAcademicDetails {
+  programOfStudy?: string;
+  department?: string;
+  yearOfStudy?: number;
+  transcriptPdfUrl?: string | null;
+}
+
+export interface AdminFamilyDetails {
+  parentalStatus?: string;
+  fatherFirstName?: string;
+  fatherSurname?: string;
+  fatherNationalId?: string;
+  fatherPhone?: string;
+  fatherProfession?: string;
+  fatherMonthlyIncome?: number | string;
+  fatherTa?: string;
+  fatherResidentialAddress?: string;
+  fatherPostalAddress?: string;
+  motherFirstName?: string;
+  motherSurname?: string;
+  motherNationalId?: string;
+  motherPhone?: string;
+  motherProfession?: string;
+  motherMonthlyIncome?: number | string;
+  motherTa?: string;
+  motherResidentialAddress?: string;
+  motherPostalAddress?: string;
+  parentFirstName?: string;
+  parentSurname?: string;
+  parentNationalId?: string;
+  parentPhone?: string;
+  parentMonthlyIncome?: number | string;
+  studentRelationship?: string;
+  parentTa?: string;
+  parentResidentialAddress?: string;
+  parentPostalAddress?: string;
+  deceasedParentId?: string;
+  guardianFirstName?: string;
+  guardianLastName?: string;
+  guardianNationalId?: string;
+  guardianPhone?: string;
+  guardianMonthlyIncome?: number | string;
+  relationshipToGuardian?: string;
+  guardianTa?: string;
+  guardianResidentialAddress?: string;
+  guardianPostalAddress?: string;
+  deceasedFatherId?: string;
+  deceasedMotherId?: string;
+  numberOfSiblings?: number | string;
+  numberStillInSchool?: number | string;
+  siblingsInPrimary?: number | string;
+  siblingsInSecondary?: number | string;
+  siblingsInTertiary?: number | string;
+}
+
+export interface AdminEducationRecord {
+  id: string;
+  educationLevel: string;
+  schoolName: string;
+  tuitionFees: number | string;
+  yearCompleted: number;
+  whoPaidFees: string;
+  isVerified?: boolean;
+}
+
+export interface AdminVerificationLog {
+  id: string;
+  documentType: string;
+  userInput?: string | null;
+  extractedData?: string | null;
+  isVerified: boolean;
+  mismatches?: string | null;
+  warnings?: string | null;
+  createdAt: string;
+}
+
+export interface AdminApplicantDetailsResponse {
+  applicant: AdminApplicantProfile;
+  application: {
+    personalDetails: AdminPersonalDetails | null;
+    academicDetails: AdminAcademicDetails | null;
+    familyDetails: AdminFamilyDetails | null;
+    education: {
+      primary: AdminEducationRecord[];
+      secondary: AdminEducationRecord[];
+      tertiary: AdminEducationRecord[];
+    };
+  };
+  applicationMeta: {
+    completionPercentage: number;
+    completedSections: number;
+    totalSections: number;
+    missingSections: string[];
+    lastUpdated: string;
+  };
+  verificationLogs: AdminVerificationLog[];
+}
+
+export interface ReviewAdminApplicantPayload {
+  status: Extract<AdminApplicantStatus, "approved" | "flagged">;
+  reviewComments?: string;
+}
+
+function normalizeApplicationStatus(status?: string | null): ApplicationStatus["status"] {
+  switch (status) {
+    case "submitted":
+      return "submitted";
+    case "reviewing":
+    case "pending_review":
+      return "reviewing";
+    case "approved":
+      return "approved";
+    case "rejected":
+      return "rejected";
+    default:
+      return "draft";
+  }
+}
+
+function deriveStatusFromReviewApplication(data: ReviewApplicationResponse): ApplicationStatus {
+  const hasPersonalDetails = !!data.data.personalDetails;
+  const hasAcademicDetails = !!data.data.academicDetails;
+  const hasFamilyDetails = !!data.data.familyDetails;
+  const education = data.data.education ?? {};
+  const educationCount =
+    (education.primary?.length ?? 0) +
+    (education.secondary?.length ?? 0) +
+    (education.tertiary?.length ?? 0);
+  const hasEducation = educationCount > 0;
+
+  const completedSteps = [
+    hasPersonalDetails,
+    hasFamilyDetails,
+    hasEducation,
+    hasAcademicDetails,
+  ].filter(Boolean).length;
+
+  const status = completedSteps === 4 ? "reviewing" : "draft";
+  const lastSaved = data.lastUpdated ?? null;
+
+  return {
+    status,
+    completedSteps,
+    totalSteps: 4,
+    lastSaved,
+    submittedAt: status === "reviewing" ? lastSaved : null,
+  };
 }
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
@@ -103,7 +366,21 @@ async function request<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body?.message ?? `Request failed: ${res.status}`);
+    const message =
+      typeof body?.message === "string" && body.message.trim().length > 0
+        ? body.message
+        : typeof body?.error === "string" && body.error.trim().length > 0
+          ? body.error
+          : `Request failed: ${res.status}`;
+
+    const detail =
+      typeof body?.error === "string" &&
+      body.error.trim().length > 0 &&
+      body.error !== message
+        ? ` (${body.error})`
+        : "";
+
+    throw new Error(`${message}${detail}`);
   }
 
   if (res.status === 204) return undefined as T;
@@ -118,6 +395,7 @@ export interface RegisterPayload {
   lastName: string;
   email: string;
   password: string;
+  registrationNumber: string;
   university: string;
 }
 
@@ -143,32 +421,30 @@ export async function resendOtp(email: string): Promise<{ message: string }> {
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const raw = await request<{ access_token: string }>("/auth/login", {
+  const raw = await request<{
+    access_token: string;
+    user: {
+      id: string;
+      email: string;
+      role: BackendRole;
+      firstName?: string;
+      lastName?: string;
+      registrationNumber?: string;
+    };
+  }>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
 
-  // Decode the JWT payload to extract user info.
-  // The backend signs it — we just read the claims.
-  const payloadBase64 = raw.access_token.split(".")[1];
-  const payload = JSON.parse(atob(payloadBase64)) as {
-    sub: string;
-    email: string;
-    role: "student" | "admin";
-    firstName?: string;
-    lastName?: string;
-    registrationNumber?: string;
-  };
-
   return {
     token: raw.access_token,
     user: {
-      id: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      registrationNumber: payload.registrationNumber,
+      id: raw.user.id,
+      email: raw.user.email,
+      role: normalizeRole(raw.user.role),
+      firstName: raw.user.firstName,
+      lastName: raw.user.lastName,
+      registrationNumber: raw.user.registrationNumber,
     },
   };
 }
@@ -181,7 +457,23 @@ export async function logout(): Promise<void> {
 // ─── Student ──────────────────────────────────────────────────────────────────
 
 export async function getApplicationStatus(): Promise<ApplicationStatus> {
-  return request<ApplicationStatus>("/student/application/status");
+  try {
+    const raw = await request<RawApplicationStatus>("/student/application/status");
+    return {
+      status: normalizeApplicationStatus(raw.status ?? raw.applicationStatus),
+      completedSteps: raw.completedSteps ?? 0,
+      totalSteps: raw.totalSteps ?? 4,
+      lastSaved: raw.lastSaved ?? null,
+      submittedAt: raw.submittedAt ?? null,
+    };
+  } catch (statusError) {
+    try {
+      const reviewData = await request<ReviewApplicationResponse>("/review/my-application");
+      return deriveStatusFromReviewApplication(reviewData);
+    } catch {
+      throw statusError;
+    }
+  }
 }
 
 export async function getStudentNotifications(): Promise<Notification[]> {
@@ -200,8 +492,8 @@ export async function clearAllNotifications(): Promise<void> {
   return request<void>("/student/notifications", { method: "DELETE" });
 }
 
-export async function submitApplication(payload: unknown): Promise<{ message: string }> {
-  return request<{ message: string }>("/student/application/submit", {
+export async function submitApplication(payload: unknown): Promise<SubmitApplicationResponse> {
+  return request<SubmitApplicationResponse>("/review/submit-application", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -234,4 +526,73 @@ export async function markAllAdminNotificationsRead(): Promise<void> {
 
 export async function clearAllAdminNotifications(): Promise<void> {
   return request<void>("/admin/notifications", { method: "DELETE" });
+}
+
+export async function getAdminApplicantDetails(userId: string): Promise<AdminApplicantDetailsResponse> {
+  return request<AdminApplicantDetailsResponse>(`/admin/users/${userId}`);
+}
+
+export async function reviewAdminApplicant(
+  userId: string,
+  payload: ReviewAdminApplicantPayload,
+): Promise<{ message: string; applicant: AdminApplicantProfile }> {
+  return request<{ message: string; applicant: AdminApplicantProfile }>(`/admin/users/${userId}/review`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getApprovedAdminApplicants(): Promise<AdminApplicantsByStatusResponse> {
+  return request<AdminApplicantsByStatusResponse>("/admin/applications/approved");
+}
+
+export async function getFlaggedAdminApplicants(): Promise<AdminApplicantsByStatusResponse> {
+  return request<AdminApplicantsByStatusResponse>("/admin/applications/flagged");
+}
+
+export async function getSponsors(): Promise<SponsorListItem[]> {
+  return request<SponsorListItem[]>("/sponsors");
+}
+
+export async function getSponsorDetails(id: string): Promise<SponsorDetails> {
+  return request<SponsorDetails>(`/sponsors/${id}`);
+}
+
+export async function createSponsor(payload: {
+  name: string;
+  requestedSlots: number;
+  logo?: File | null;
+}): Promise<SponsorDetails> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("name", payload.name);
+  formData.append("requestedSlots", String(payload.requestedSlots));
+  if (payload.logo) {
+    formData.append("logo", payload.logo);
+  }
+
+  const res = await fetch(`${BASE_URL}/sponsors`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const message =
+      typeof body?.message === "string" && body.message.trim().length > 0
+        ? body.message
+        : typeof body?.error === "string" && body.error.trim().length > 0
+          ? body.error
+          : `Request failed: ${res.status}`;
+    throw new Error(message);
+  }
+
+  return res.json() as Promise<SponsorDetails>;
+}
+
+export function getAssetUrl(path?: string | null): string | null {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${BASE_URL}${path}`;
 }
