@@ -41,7 +41,7 @@ export default function SponsorsPage() {
   };
 
   useEffect(() => {
-    void loadSponsors();
+    void loadSponsors().catch(() => {});
   }, []);
 
   const openSponsor = async (sponsorId: string) => {
@@ -107,20 +107,17 @@ export default function SponsorsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="mb-6 border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <button
-          onClick={() => {
-            resetModal();
-            setIsAddModalOpen(true);
-          }}
-          className="h-48 rounded-[32px] border-2 border-dashed border-slate-200 hover:border-brand-blue hover:bg-brand-blue/[0.02] transition-all flex flex-col items-center justify-center gap-3 group"
+          onClick={() => { resetModal(); setIsAddModalOpen(true); }}
+          className="h-48 border-2 border-dashed border-slate-200 hover:border-brand-blue hover:bg-brand-blue/[0.02] transition-all flex flex-col items-center justify-center gap-3 group"
         >
-          <div className="w-12 h-12 rounded-full bg-slate-100 group-hover:bg-brand-blue group-hover:text-white flex items-center justify-center transition-all">
+          <div className="w-12 h-12 bg-slate-100 group-hover:bg-brand-blue group-hover:text-white flex items-center justify-center transition-all">
             <Plus size={24} />
           </div>
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-brand-blue">Add Sponsor</span>
@@ -128,10 +125,10 @@ export default function SponsorsPage() {
 
         {loading ? (
           [...Array(3)].map((_, index) => (
-            <div key={index} className="h-48 rounded-[32px] border border-slate-200 bg-white animate-pulse" />
+            <div key={index} className="h-48 border border-slate-200 bg-white animate-pulse" />
           ))
         ) : sponsors.length === 0 ? (
-          <div className="col-span-full rounded-[32px] border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-400">
+          <div className="col-span-full border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-400">
             No sponsors created yet.
           </div>
         ) : (
@@ -140,13 +137,12 @@ export default function SponsorsPage() {
             return (
               <motion.div
                 key={sponsor.id}
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -4 }}
                 onClick={() => void openSponsor(sponsor.id)}
-                className="h-48 bg-white rounded-[32px] border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center text-center gap-4"
+                className="h-48 bg-white border border-slate-200 p-6 hover:shadow-xl hover:shadow-slate-200/50 hover:border-brand-blue transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center text-center gap-4"
               >
-                <div
-                  className={cn(
-                    "absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full border",
+                <div className={cn(
+                    "absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 border",
                     sponsor.status === "completed"
                       ? "bg-emerald-50 border-emerald-100"
                       : sponsor.status === "partial"
@@ -169,7 +165,7 @@ export default function SponsorsPage() {
                   </span>
                 </div>
 
-                <div className="w-20 h-20 rounded-2xl bg-brand-surface flex items-center justify-center text-brand-blue font-black text-2xl shadow-inner border border-slate-50 overflow-hidden">
+                <div className="w-20 h-20 bg-brand-surface flex items-center justify-center text-brand-blue font-black text-2xl border border-slate-100 overflow-hidden">
                   {logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoUrl} alt={sponsor.name} className="h-full w-full object-cover" />
@@ -210,7 +206,7 @@ export default function SponsorsPage() {
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-brand-slate text-white flex items-center justify-center font-bold text-xs overflow-hidden">
+                  <div className="w-12 h-12 bg-brand-slate text-white flex items-center justify-center font-bold text-xs overflow-hidden">
                     {activeSponsor.logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={getAssetUrl(activeSponsor.logoUrl) ?? ""} alt={activeSponsor.name} className="h-full w-full object-cover" />
@@ -219,7 +215,7 @@ export default function SponsorsPage() {
                     )}
                   </div>
                   <div>
-                    <h2 className="font-black text-brand-slate tracking-tight">{activeSponsor.name}</h2>
+                    <h2 className="font-display font-bold text-brand-slate tracking-tight">{activeSponsor.name}</h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       {activeSponsor.allocatedCount} of {activeSponsor.requestedSlots} approved applicants allocated
                     </p>
@@ -227,7 +223,7 @@ export default function SponsorsPage() {
                 </div>
                 <button
                   onClick={() => setActiveSponsor(null)}
-                  className="w-10 h-10 rounded-full hover:bg-slate-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 border border-slate-200 hover:bg-slate-200 flex items-center justify-center transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -235,12 +231,12 @@ export default function SponsorsPage() {
 
               <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 {detailsLoading ? (
-                  <div className="flex items-center gap-3 rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-500">
+                  <div className="flex items-center gap-3 border border-slate-100 bg-slate-50 p-6 text-sm text-slate-500">
                     <Loader2 size={18} className="animate-spin" />
                     Loading sponsor allocations...
                   </div>
                 ) : activeSponsor.applicants.length === 0 ? (
-                  <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6">
+                  <div className="border border-slate-100 bg-slate-50 p-6">
                     <h4 className="text-sm font-bold text-brand-blue flex items-center gap-2 mb-2">
                       <Users size={16} /> No allocations yet
                     </h4>
@@ -251,16 +247,16 @@ export default function SponsorsPage() {
                 ) : (
                   <div className="space-y-8">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-black text-brand-slate uppercase tracking-widest text-[10px]">Allocated Approved Applicants</h3>
+                      <h3 className="font-display font-bold text-brand-slate uppercase tracking-widest text-[10px]">Allocated Approved Applicants</h3>
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         Highest score first
                       </span>
                     </div>
 
-                    <div className="bg-slate-50 rounded-[32px] overflow-hidden border border-slate-100">
+                    <div className="bg-slate-50 overflow-hidden border border-slate-100">
                       <table className="w-full text-left">
                         <thead className="bg-slate-100/50">
-                          <tr className="text-[9px] uppercase font-black text-slate-400 tracking-widest">
+                          <tr className="text-xs font-semibold text-slate-500">
                             <th className="px-6 py-4">Rank</th>
                             <th className="px-6 py-4">Student</th>
                             <th className="px-6 py-4">Programme</th>
@@ -273,13 +269,13 @@ export default function SponsorsPage() {
                               <td className="px-6 py-4 font-black text-brand-blue">#{String(applicant.rank).padStart(2, "0")}</td>
                               <td className="px-6 py-4">
                                 <p className="font-bold text-brand-slate">{applicant.name}</p>
-                                <p className="text-[10px] uppercase tracking-widest text-slate-400 mt-1">
+                                <p className="text-xs text-slate-400 mt-1">
                                   {applicant.registrationNumber || applicant.email}
                                 </p>
                               </td>
                               <td className="px-6 py-4 font-medium text-slate-500">{applicant.program}</td>
                               <td className="px-6 py-4 text-center">
-                                <span className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-black">
+                                <span className="border border-slate-200 bg-white px-2 py-1 text-[10px] font-black">
                                   {applicant.score}
                                 </span>
                               </td>
@@ -293,7 +289,7 @@ export default function SponsorsPage() {
               </div>
 
               <div className="p-8 border-t border-slate-100 bg-slate-50/50">
-                <div className="w-full h-16 rounded-[20px] bg-emerald-500 text-white shadow-xl shadow-emerald-200 flex items-center justify-center gap-3 font-black text-md">
+                <div className="w-full h-14 bg-emerald-500 text-white flex items-center justify-center gap-3 font-bold text-sm">
                   <FileText size={20} />
                   Live Sponsor Allocation
                 </div>
@@ -317,40 +313,40 @@ export default function SponsorsPage() {
               onClick={() => setIsAddModalOpen(false)}
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-[40px] w-full max-w-md p-10 relative z-10 shadow-2xl"
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-md p-10 relative z-10 shadow-2xl"
             >
-              <h2 className="text-2xl font-black text-brand-slate tracking-tight mb-2">New Sponsor</h2>
+              <h2 className="text-2xl font-display font-bold text-brand-slate tracking-tight mb-2">New Sponsor</h2>
               <p className="text-slate-500 text-sm mb-8 font-medium">Create a sponsor and allocate approved applicants from the backend.</p>
 
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest ml-1">Sponsor Name</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-400 tracking-widest ml-1">Sponsor Name</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter organization name"
-                    className="h-14 rounded-2xl bg-slate-50 border-none shadow-inner font-bold px-6"
+                    className="h-14 rounded-none bg-slate-50 border-none shadow-inner font-bold px-6"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest ml-1">Number Of Applicants</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-400 tracking-widest ml-1">Number Of Applicants</label>
                   <Input
                     type="number"
                     min="1"
                     value={requestedSlots}
                     onChange={(e) => setRequestedSlots(e.target.value)}
                     placeholder="e.g. 50"
-                    className="h-14 rounded-2xl bg-slate-50 border-none shadow-inner font-bold px-6"
+                    className="h-14 rounded-none bg-slate-50 border-none shadow-inner font-bold px-6"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest ml-1">Logo Image</label>
-                  <label className="border-2 border-dashed border-slate-100 rounded-2xl p-6 flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors cursor-pointer">
+                  <label className="text-[11px] font-bold uppercase text-slate-400 tracking-widest ml-1">Logo Image</label>
+                  <label className="border-2 border-dashed border-slate-200 p-6 flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors cursor-pointer">
                     <Plus className="text-slate-300" />
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       {logoFile ? logoFile.name : "Upload PNG, JPG, or WEBP"}
@@ -365,7 +361,7 @@ export default function SponsorsPage() {
                 </div>
 
                 {createError && (
-                  <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                     {createError}
                   </div>
                 )}
@@ -373,7 +369,7 @@ export default function SponsorsPage() {
                 <Button
                   onClick={() => void handleCreateSponsor()}
                   disabled={creating}
-                  className="w-full h-16 bg-brand-blue text-white rounded-[20px] font-black shadow-xl shadow-brand-blue/20 mt-4"
+                  className="w-full h-14 bg-brand-blue text-white font-bold mt-4 hover:bg-brand-blueDark"
                 >
                   {creating ? <Loader2 className="animate-spin" /> : "Register Sponsor"}
                 </Button>

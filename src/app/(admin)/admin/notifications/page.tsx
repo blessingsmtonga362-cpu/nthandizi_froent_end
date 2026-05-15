@@ -58,7 +58,7 @@ export default function AdminNotificationsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-brand-slate tracking-tight">Notifications</h1>
+          <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">Notifications</h1>
           <p className="text-slate-500 font-medium mt-1">System alerts and administrative updates.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export default function AdminNotificationsPage() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6">
                 <Bell size={40} />
               </div>
-              <h3 className="text-xl font-black text-brand-slate tracking-tight">All caught up</h3>
+              <h3 className="text-xl font-display font-bold text-brand-slate tracking-tight">All caught up</h3>
               <p className="text-slate-400 text-sm font-medium mt-2">Check back later for new updates.</p>
             </div>
           )}

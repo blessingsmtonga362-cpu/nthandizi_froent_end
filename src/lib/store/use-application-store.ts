@@ -113,7 +113,7 @@ export interface PaymentData {
   accountNumber: string;
 }
 
-interface ApplicationData {
+export interface ApplicationData {
   personal: PersonalData;
   family: FamilyData;
   education: EducationData;
@@ -121,6 +121,8 @@ interface ApplicationData {
   payment: PaymentData;
   currentStep: number;
   lastSaved: Date | null;
+  reviewVisited: boolean;
+  declarationAccepted: boolean;
 }
 
 interface ApplicationStore {
@@ -131,6 +133,8 @@ interface ApplicationStore {
   updateAcademics: (d: Partial<AcademicsData>) => void;
   updatePayment: (d: Partial<PaymentData>) => void;
   setStep: (step: number) => void;
+  setReviewVisited: (visited?: boolean) => void;
+  setDeclarationAccepted: (accepted: boolean) => void;
   reset: () => void;
 }
 
@@ -175,6 +179,8 @@ const initialData: ApplicationData = {
   },
   currentStep: 1,
   lastSaved: null,
+  reviewVisited: false,
+  declarationAccepted: false,
 };
 
 export const useApplicationStore = create<ApplicationStore>((set) => ({
@@ -201,6 +207,26 @@ export const useApplicationStore = create<ApplicationStore>((set) => ({
   updatePayment: (d) => set((s) => ({
     data: { ...s.data, payment: { ...s.data.payment, ...d }, lastSaved: new Date() }
   })),
-  setStep: (step) => set((s) => ({ data: { ...s.data, currentStep: step } })),
+  setStep: (step) =>
+    set((s) => ({
+      data: {
+        ...s.data,
+        currentStep: step,
+        reviewVisited: s.data.reviewVisited || step >= 4,
+      },
+    })),
+  setReviewVisited: (visited = true) =>
+    set((s) => ({
+      data: { ...s.data, reviewVisited: visited, lastSaved: new Date() },
+    })),
+  setDeclarationAccepted: (accepted) =>
+    set((s) => ({
+      data: {
+        ...s.data,
+        declarationAccepted: accepted,
+        reviewVisited: true,
+        lastSaved: new Date(),
+      },
+    })),
   reset: () => set({ data: initialData }),
 }));

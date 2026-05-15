@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,22 +49,28 @@ export default function RegisterPage() {
     return "bg-emerald-500";
   };
 
+  const currentStrength = passwordStrength(formData.password);
+  const isPasswordStrong = currentStrength === 4;
+
   const isFormValid = () =>
     formData.firstName.trim() &&
     formData.surname.trim() &&
     formData.registrationNumber.trim() &&
     formData.email.endsWith("@unima.ac.mw") &&
     formData.password.length >= 8 &&
+    isPasswordStrong &&
     formData.password === formData.confirmPassword &&
     !emailError;
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password.length < 8 || !isPasswordStrong) {
+      setError("Choose a stronger password: at least 8 characters, including uppercase letters, numbers, and symbols.");
+      return;
+    }
     if (!isFormValid()) return;
-
     setIsLoading(true);
     setError("");
-
     try {
       await registerUser({
         firstName: formData.firstName.trim(),
@@ -83,144 +88,180 @@ export default function RegisterPage() {
     }
   };
 
-  const currentStrength = passwordStrength(formData.password);
+  const fieldClass = "h-14 rounded-none border border-slate-300 px-4 font-normal text-slate-800 placeholder:text-slate-400 placeholder:font-light hover:border-brand-blue focus:border-brand-blue transition-colors";
 
   return (
-    <div className="min-h-screen bg-brand-surface flex flex-col justify-center py-12 px-6 selection:bg-brand-blue/30">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="max-w-2xl w-full mx-auto"
-      >
-        {/* Branding Header */}
-        <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center justify-center mb-8 hover:scale-105 transition-transform">
-            <img src="/mthandizi.png" alt="Mthandizi Logo" className="h-12 w-auto" />
-          </Link>
-          <h2 className="text-3xl font-black text-brand-slate tracking-tight">Create Account</h2>
-          <p className="text-slate-500 font-medium mt-2">Join the Mthandizi student profiling platform.</p>
-        </div>
+    <div className="min-h-screen flex">
+      {/* ── Left panel — photo ── */}
+      <div className="hidden lg:block relative w-1/2 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/3-hanz.jpg"
+          alt="Background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-brand-slate/70" />
 
-        {/* Registration Card */}
-        <div className="bg-white p-10 rounded-[40px] shadow-2xl shadow-slate-200/60 border border-slate-100">
-          <form className="space-y-7" onSubmit={handleRegister}>
-            <div className="grid md:grid-cols-2 gap-x-6 gap-y-7">
+        {/* Animated logo centred on overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.img
+            src="/mthandizi.png"
+            alt="Mthandizi"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="h-24 w-auto object-contain brightness-0 invert"
+          />
+        </div>
+      </div>
+
+      {/* ── Right panel — form ── */}
+      <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-20 py-12 overflow-y-auto" style={{ backgroundColor: "#FAF9F7" }}>
+        {/* Go back */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-blue transition-colors mb-10 self-start"
+        >
+          <ArrowLeft size={16} />
+          Go back
+        </Link>
+
+        <motion.div
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="max-w-lg w-full"
+        >
+          {/* Heading */}
+          <h1 className="text-4xl font-display font-bold text-brand-slate tracking-tight mb-1">
+            Sign Up
+          </h1>
+          <p className="text-slate-500 font-medium mb-10">
+            Join the Mthandizi student profiling platform.
+          </p>
+
+          <form autoComplete="off" className="space-y-6" onSubmit={handleRegister}>
+            <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
 
               {/* First Name */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">First Name</label>
+                <label className="text-sm font-medium text-slate-700 block">First Name</label>
                 <Input
                   required
-                  placeholder="first name"
+                  autoComplete="given-name"
+                  placeholder="First name"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
+                  className={fieldClass}
                 />
               </div>
 
               {/* Surname */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Surname</label>
+                <label className="text-sm font-medium text-slate-700 block">Surname</label>
                 <Input
                   required
-                  placeholder="surname"
+                  autoComplete="family-name"
+                  placeholder="Surname"
                   value={formData.surname}
                   onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
-                  className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
+                  className={fieldClass}
+                />
+              </div>
+
+              {/* Registration Number */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium text-slate-700 block">Registration Number</label>
+                <Input
+                  required
+                  autoComplete="off"
+                  placeholder="e.g. BSC-COM-14-21"
+                  value={formData.registrationNumber}
+                  onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+                  className={fieldClass}
                 />
               </div>
 
               {/* University Email */}
               <div className="space-y-2 md:col-span-2">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Registration Number</label>
-                <Input
-                  required
-                  placeholder="e.g. UNIMA20240123"
-                  value={formData.registrationNumber}
-                  onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
-                  className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">University Email</label>
+                <label className="text-sm font-medium text-slate-700 block">University Email</label>
                 <Input
                   required
                   type="email"
-                  placeholder="yourname@unima.ac.mw"
+                  autoComplete="email"
+                  placeholder="your@unima.ac.mw"
                   value={formData.email}
                   onChange={(e) => handleEmailChange(e.target.value)}
-                  className={cn(
-                    "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors",
-                    emailError ? "border-red-500" : ""
-                  )}
+                  className={cn(fieldClass, emailError ? "border-red-500" : "")}
                 />
                 <AnimatePresence>
                   {emailError && (
                     <motion.p
-                      initial={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-red-500 text-xs mt-2 flex items-center gap-1.5 ml-1"
+                      exit={{ opacity: 0, y: -8 }}
+                      className="text-red-500 text-xs flex items-center gap-1.5"
                     >
-                      <AlertCircle className="w-3 h-3" /> {emailError}
+                      <AlertCircle className="w-3 h-3 shrink-0" /> {emailError}
                     </motion.p>
                   )}
                 </AnimatePresence>
               </div>
 
               {/* Password */}
-              <div className="space-y-2 relative">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Password</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 block">Password</label>
                 <div className="relative">
                   <Input
                     required
                     type={showPassword ? "text" : "password"}
-                    placeholder="min. 8 characters"
+                    autoComplete="new-password"
+                    placeholder="Min. 8 characters"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="h-14 rounded-2xl bg-white border border-slate-200 px-6 pr-12 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
+                    className={cn(fieldClass, "pr-12")}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-brand-blue transition-colors">
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-blue transition-colors">
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <div className="flex gap-1 mt-2 px-1">
+                {formData.password.length > 0 && !isPasswordStrong && (
+                  <p className="text-xs text-red-500">Needs 8+ chars, uppercase, numbers and symbols.</p>
+                )}
+                <div className="flex gap-1">
                   {[1, 2, 3, 4].map((step) => (
-                    <div key={step} className={cn("h-1.5 w-full rounded-full transition-colors duration-300", currentStrength >= step ? getStrengthColor(currentStrength) : "bg-slate-100")} />
+                    <div key={step} className={cn("h-1 w-full transition-colors duration-300", currentStrength >= step ? getStrengthColor(currentStrength) : "bg-slate-200")} />
                   ))}
                 </div>
               </div>
 
               {/* Confirm Password */}
-              <div className="space-y-2 relative">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">Confirm Password</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 block">Confirm Password</label>
                 <div className="relative">
                   <Input
                     required
                     type={showPassword ? "text" : "password"}
-                    placeholder="repeat password"
+                    autoComplete="new-password"
+                    placeholder="Repeat password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className={cn(
-                      "h-14 rounded-2xl bg-white border border-slate-200 px-6 pr-12 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors",
-                      formData.confirmPassword && formData.password !== formData.confirmPassword ? "border-red-500" : ""
-                    )}
+                    className={cn(fieldClass, "pr-12", formData.confirmPassword && formData.password !== formData.confirmPassword ? "border-red-500" : "")}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-brand-blue transition-colors">
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-blue transition-colors">
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 <AnimatePresence>
                   {formData.confirmPassword && formData.password !== formData.confirmPassword && (
                     <motion.p
-                      initial={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-red-500 text-xs mt-2 flex items-center gap-1.5 ml-1"
+                      exit={{ opacity: 0, y: -8 }}
+                      className="text-red-500 text-xs flex items-center gap-1.5"
                     >
-                      <AlertCircle className="w-3 h-3" /> Passwords do not match
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Passwords do not match
                     </motion.p>
                   )}
                 </AnimatePresence>
@@ -231,40 +272,38 @@ export default function RegisterPage() {
             <AnimatePresence>
               {error && (
                 <motion.p
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-red-500 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+                  exit={{ opacity: 0, y: -8 }}
+                  className="text-red-500 text-xs flex items-center gap-1.5"
                 >
-                  <AlertCircle className="w-3.5 h-3.5" /> {error}
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {error}
                 </motion.p>
               )}
             </AnimatePresence>
 
-            <Button
+            <button
               type="submit"
-              className="w-full h-16 bg-brand-blue hover:bg-brand-blueDark text-white font-black rounded-[20px] shadow-xl shadow-brand-blue/20 text-md transition-all active:scale-[0.98]"
               disabled={!isFormValid() || isLoading}
+              className="w-full h-14 bg-brand-slate text-white font-bold text-sm tracking-wide hover:bg-brand-blue hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3"
             >
               {isLoading ? (
-                <div className="flex items-center gap-3">
+                <>
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                   Creating Account...
-                </div>
-              ) : (
-                "Create Account"
-              )}
-            </Button>
+                </>
+              ) : "Create Account"}
+            </button>
 
-            <p className="text-center text-sm text-slate-500 mt-6">
+            <p className="text-sm text-slate-500">
               Already have an account?{" "}
-              <Link href="/login" className="text-brand-blue font-black hover:underline transition-colors">
+              <Link href="/login" className="text-brand-blue font-bold hover:underline">
                 Sign In
               </Link>
             </p>
           </form>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

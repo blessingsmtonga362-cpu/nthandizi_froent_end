@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Loader2, ShieldCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   getAdminApplicantDetails,
+  getAdminDashboardStats,
+  getAllAdminApplicants,
   type AdminApplicantDetailsResponse,
-  type AdminApplicantListItem,
-  type AdminApplicantsByStatusResponse,
   type AdminApplicantStatus,
+  type PriorityStudent,
 } from "@/lib/api";
 
 function formatValue(value: string | number | null | undefined) {
@@ -67,22 +68,15 @@ function DetailGrid({
   );
 }
 
-type Props = {
-  title: string;
-  description: string;
-  emptyMessage: string;
-  loadApplicants: () => Promise<AdminApplicantsByStatusResponse>;
-};
+const selectClass =
+  "h-11 border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 outline-none transition-colors focus:border-brand-blue";
 
-export default function ApplicantStatusPage({
-  title,
-  description,
-  emptyMessage,
-  loadApplicants,
-}: Props) {
-  const [data, setData] = useState<AdminApplicantsByStatusResponse | null>(null);
+export default function ApplicantsPage() {
+  const [applicants, setApplicants] = useState<PriorityStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [programFilter, setProgramFilter] = useState("all");
+  const [rankFilter, setRankFilter] = useState("all");
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
   const [details, setDetails] = useState<AdminApplicantDetailsResponse | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -91,17 +85,51 @@ export default function ApplicantStatusPage({
   useEffect(() => {
     const run = async () => {
       try {
-        const response = await loadApplicants();
-        setData(response);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load applicants.");
+        const response = await getAllAdminApplicants();
+        setApplicants(response.applicants);
+        setError("");
+      } catch {
+        try {
+          const stats = await getAdminDashboardStats();
+          setApplicants(stats.priorityQueue);
+          setError("");
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to load applicants.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     void run();
-  }, [loadApplicants]);
+  }, []);
+
+  const programs = useMemo(() => {
+    const unique = new Set(
+      applicants.map((a) => a.program).filter((p) => p && p.trim() !== ""),
+    );
+    return Array.from(unique).sort();
+  }, [applicants]);
+
+  const rankedApplicants = useMemo(
+    () =>
+      [...applicants]
+        .sort((a, b) => b.score - a.score)
+        .map((row, index) => ({
+          ...row,
+          rank: index + 1,
+        })),
+    [applicants],
+  );
+
+  const filteredApplicants = useMemo(() => {
+    return rankedApplicants.filter((row) => {
+      const matchesProgram =
+        programFilter === "all" || row.program.toLowerCase() === programFilter.toLowerCase();
+      const matchesRank = rankFilter === "all" || String(row.rank) === rankFilter;
+      return matchesProgram && matchesRank;
+    });
+  }, [rankedApplicants, programFilter, rankFilter]);
 
   const openApplicant = async (userId: string) => {
     setSelectedApplicantId(userId);
@@ -125,26 +153,60 @@ export default function ApplicantStatusPage({
     setDetailsError("");
   };
 
-  const applicants = data?.applicants ?? [];
   const personal = details?.application.personalDetails;
   const academics = details?.application.academicDetails;
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-display font-bold text-brand-slate tracking-tight">{title}</h1>
-        <p className="text-slate-500 text-sm font-medium">{description}</p>
+        <h1 className="text-2xl font-display font-bold text-brand-slate tracking-tight">All Applicants</h1>
+        <p className="text-slate-500 text-sm font-medium">
+          Browse every submitted application, filter by programme or rank, and open full applicant details.
+        </p>
       </div>
 
       <div className="border border-slate-200 bg-white overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-sm font-display font-bold text-brand-slate">{title}</h2>
-            <p className="mt-1 text-xs text-slate-400">{data ? `${data.count} applicants` : "Loading..."}</p>
+            <h2 className="text-sm font-display font-bold text-brand-slate">Applicants</h2>
+            <p className="mt-1 text-xs text-slate-400">
+              {loading ? "Loading..." : `${filteredApplicants.length} of ${rankedApplicants.length} shown`}
+            </p>
           </div>
-          <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-1">
-            <ShieldCheck size={12} className="text-brand-blue" />
-            <span className="text-xs font-medium text-slate-500">Backend synced</span>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={programFilter}
+              onChange={(e) => setProgramFilter(e.target.value)}
+              className={selectClass}
+              aria-label="Filter by programme"
+            >
+              <option value="all">All programmes</option>
+              {programs.map((program) => (
+                <option key={program} value={program}>
+                  {program}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={rankFilter}
+              onChange={(e) => setRankFilter(e.target.value)}
+              className={selectClass}
+              aria-label="Filter by rank"
+            >
+              <option value="all">All ranks</option>
+              {rankedApplicants.map((row) => (
+                <option key={row.id} value={String(row.rank)}>
+                  Rank #{String(row.rank).padStart(2, "0")}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2">
+              <ShieldCheck size={12} className="text-brand-blue" />
+              <span className="text-xs font-medium text-slate-500">Backend synced</span>
+            </div>
           </div>
         </div>
 
@@ -152,9 +214,10 @@ export default function ApplicantStatusPage({
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
+                <th className="px-6 py-4">Rank</th>
                 <th className="px-6 py-4">Student</th>
                 <th className="px-6 py-4">Programme</th>
-                <th className="px-6 py-4">Comment</th>
+                <th className="px-6 py-4 text-center">Need index</th>
                 <th className="px-6 py-4 text-center">Status</th>
                 <th className="px-6 py-4 text-right">Action</th>
               </tr>
@@ -163,49 +226,66 @@ export default function ApplicantStatusPage({
               {loading ? (
                 [...Array(3)].map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={5} className="px-6 py-5">
+                    <td colSpan={6} className="px-6 py-5">
                       <div className="h-4 w-full animate-pulse bg-slate-100" />
                     </td>
                   </tr>
                 ))
               ) : error ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-red-600">
+                  <td colSpan={6} className="px-6 py-10 text-center text-sm text-red-600">
                     {error}
                   </td>
                 </tr>
-              ) : applicants.length === 0 ? (
+              ) : filteredApplicants.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-slate-400">
-                    {emptyMessage}
+                  <td colSpan={6} className="px-6 py-10 text-center text-sm text-slate-400">
+                    No applicants match the selected filters.
                   </td>
                 </tr>
               ) : (
-                applicants.map((applicant: AdminApplicantListItem) => (
-                  <tr key={applicant.userId} className="hover:bg-slate-50 transition-colors">
+                filteredApplicants.map((row) => (
+                  <tr key={row.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-brand-blue text-sm">
+                      #{String(row.rank).padStart(2, "0")}
+                    </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-bold text-brand-slate">
-                        {applicant.firstName} {applicant.lastName}
-                      </p>
-                      <p className="mt-0.5 text-xs font-medium text-slate-400">
-                        {applicant.registrationNumber || applicant.email}
+                      <p className="text-sm font-bold text-brand-slate">{row.name}</p>
+                      <p className="text-xs font-medium text-slate-400 mt-0.5">
+                        {row.registrationNumber || row.id}
                       </p>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-500">
-                      {applicant.program}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">
-                      {applicant.reviewComments?.trim() || "No comment recorded."}
+                      {row.program}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={cn("inline-flex border px-2.5 py-1 text-xs font-medium", statusBadgeClass(applicant.status))}>
-                        {formatApplicantStatus(applicant.status)}
+                      <span
+                        className={cn(
+                          "inline-flex border px-2.5 py-1 text-[11px] font-bold",
+                          row.score > 80
+                            ? "bg-red-50 text-red-600 border-red-200"
+                            : row.score > 60
+                              ? "bg-amber-50 text-amber-600 border-amber-200"
+                              : "bg-emerald-50 text-emerald-600 border-emerald-200",
+                        )}
+                      >
+                        {row.score}/100
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={cn(
+                          "inline-flex border px-2.5 py-1 text-xs font-medium",
+                          statusBadgeClass(row.status),
+                        )}
+                      >
+                        {formatApplicantStatus(row.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         type="button"
-                        onClick={() => void openApplicant(applicant.userId)}
+                        onClick={() => void openApplicant(row.id)}
                         className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:border-brand-blue hover:text-brand-blue"
                       >
                         View more

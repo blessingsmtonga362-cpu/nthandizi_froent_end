@@ -58,7 +58,7 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-brand-slate tracking-tight">Notifications</h1>
+          <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">Notifications</h1>
           <p className="text-slate-500 font-medium mt-1">Stay updated on your profiling progress and campus news.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export default function NotificationsPage() {
                     {/* Content */}
                     <div className="flex-1">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                        <h3 className="font-black text-brand-slate text-lg leading-tight group-hover:text-brand-blue transition-colors">
+                        <h3 className="font-display font-bold text-brand-slate text-lg leading-tight group-hover:text-brand-blue transition-colors">
                           {n.title}
                         </h3>
                         <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">

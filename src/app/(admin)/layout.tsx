@@ -1,16 +1,26 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LayoutDashboard, Handshake, CheckCircle2, AlertTriangle, KeyRound, LogOut, ChevronRight, Bell, UserCircle2 } from "lucide-react";
+import { KeyRound, LogOut, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { logout, getStoredUser, type AuthUser } from "@/lib/api";
+import { clearOfflinePersistence } from "@/hooks/use-offline-persistence";
 
 const EXPANDED_W = 256;
 const COLLAPSED_W = 72;
+
+const navItems = [
+  { label: "Dashboard",     href: "/admin/dashboard",     img: "/myhome.png" },
+  { label: "Applicants",    href: "/admin/applicants",    img: "/apply.png" },
+  { label: "Approved",      href: "/admin/approved",      img: "/approved.png" },
+  { label: "Flagged",       href: "/admin/flagged",       img: "/flagged.png" },
+  { label: "Sponsors",      href: "/admin/sponsors",      img: "/sponsors.png" },
+  { label: "Notifications", href: "/admin/notifications", img: "/notification.png" },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,19 +30,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { loading } = useAuth("admin");
 
-  // Read display data directly from localStorage — works regardless of DEV_BYPASS_AUTH
   const [storedUser, setStoredUser] = useState<AuthUser | null>(null);
   useEffect(() => {
     setStoredUser(getStoredUser());
   }, []);
-
-  const navItems = [
-    { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
-    { label: "Sponsors", icon: Handshake, href: "/admin/sponsors" },
-    { label: "Approved", icon: CheckCircle2, href: "/admin/approved" },
-    { label: "Flagged", icon: AlertTriangle, href: "/admin/flagged" },
-    { label: "Notifications", icon: Bell, href: "/admin/notifications" },
-  ];
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -46,58 +47,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleSignOut = async () => {
     setDropdownOpen(false);
+    await clearOfflinePersistence();
     await logout();
     router.push("/login");
   };
 
-  // Block render until auth resolves (only matters when guard is active)
   if (loading) return null;
 
+  const displayName = storedUser
+    ? `${storedUser.firstName ?? ""} ${storedUser.lastName ?? ""}`.trim() || "Administrator"
+    : "Administrator";
+
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
-      {/* SIDEBAR */}
-      <motion.aside 
+    <div className="flex min-h-screen" style={{ backgroundColor: "#FAF9F7" }}>
+
+      {/* ── SIDEBAR ── */}
+      <motion.aside
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        className="bg-[linear-gradient(180deg,#0f172a_0%,#172554_48%,#155e75_100%)] text-slate-300 flex flex-col fixed h-full z-50 border-r border-white/10 overflow-hidden shadow-2xl"
+        className="hidden lg:flex flex-col h-screen sticky top-0 left-0 overflow-hidden shrink-0 border-r border-[#E8E4DE] shadow-sm z-50"
+        style={{ backgroundColor: "#FAF9F7" }}
       >
-        {/* Branding Area */}
-        <div className={cn(
-          "flex items-center h-20 px-4 shrink-0 gap-3",
-          expanded ? "justify-between" : "justify-center"
-        )}>
+        {/* Logo area — h-16 matches header */}
+        <div className="flex items-center h-16 px-4 shrink-0 justify-between">
+          <button
+            onClick={() => !expanded && setExpanded(true)}
+            tabIndex={!expanded ? 0 : -1}
+            className="focus:outline-none shrink-0"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/mthandizi.png" alt="Mthandizi" className="h-9 w-auto object-contain" />
+          </button>
+
           <AnimatePresence initial={false}>
             {expanded && (
-              <motion.div
-                key="logo"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden flex-1 min-w-0"
+              <motion.button
+                key="collapse"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setExpanded(false)}
+                title="Collapse sidebar"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-brand-blue hover:bg-brand-blue/5 transition-colors shrink-0"
               >
-                <img src="/mthandizi.png" alt="Mthandizi" className="h-9 w-auto object-contain" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300 block mt-1">
-                  Admin Portal
-                </span>
-              </motion.div>
+                <ChevronLeft size={18} />
+              </motion.button>
             )}
           </AnimatePresence>
-
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <motion.span animate={{ rotate: expanded ? 180 : 0 }}>
-              <ChevronRight size={18} />
-            </motion.span>
-          </button>
         </div>
 
-        <div className="mx-4 h-px bg-white/5 shrink-0" />
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 pt-6 space-y-1">
+        {/* Nav items */}
+        <nav className="flex-1 flex flex-col gap-1 px-3 pt-6">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -106,78 +107,94 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 title={!expanded ? item.label : undefined}
                 className={cn(
-                  "flex items-center rounded-xl transition-all duration-200 group relative",
-                  expanded ? "px-4 py-3 gap-3" : "px-0 py-3 justify-center",
-                  isActive
-                    ? "bg-white/14 text-white shadow-lg shadow-slate-950/20 ring-1 ring-white/10"
-                    : "hover:bg-white/8 hover:text-white"
+                  "flex items-center gap-4 rounded-lg transition-all duration-200 group relative",
+                  expanded ? "px-4 py-4" : "px-0 py-4 justify-center",
+                  isActive ? "bg-brand-blue/10" : "hover:bg-brand-blue/5"
                 )}
               >
-                <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} className={cn(isActive ? "text-brand-blue" : "text-slate-300 group-hover:text-brand-blue transition-colors")} />
-                
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.img}
+                  alt={item.label}
+                  className={cn(
+                    "w-6 h-6 object-contain shrink-0 transition-all duration-200",
+                    isActive
+                      ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                      : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                  )}
+                />
+
                 <AnimatePresence initial={false}>
                   {expanded && (
                     <motion.span
+                      key="label"
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
-                      className="text-sm font-medium whitespace-nowrap overflow-hidden"
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className={cn(
+                        "font-bold tracking-tight text-base whitespace-nowrap overflow-hidden transition-colors duration-200",
+                        isActive ? "text-brand-blue" : "text-slate-500 group-hover:text-brand-blue"
+                      )}
                     >
                       {item.label}
                     </motion.span>
                   )}
                 </AnimatePresence>
-                
-                {isActive && expanded && (
-                  <motion.div layoutId="adminNav" className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
-                )}
               </Link>
             );
           })}
         </nav>
       </motion.aside>
 
-      {/* MAIN CONTENT AREA */}
-      <motion.main 
-        animate={{ marginLeft: expanded ? EXPANDED_W : COLLAPSED_W }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        className="flex-1"
-      >
-        {/* Header — matches student portal structure */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-40">
-          {/* Left — UNIMA logo + name */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto object-contain" />
-            <div className="h-6 w-px bg-slate-200" />
-            <span className="font-bold text-brand-slate text-sm tracking-tight">University of Malawi</span>
-          </div>
-          <div className="lg:hidden flex items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/mthandizi.png" alt="Mthandizi" style={{ height: "32px", width: "auto" }} />
-          </div>
+      {/* ── MAIN CONTENT ── */}
+      <main className="flex-1 min-w-0">
+        {/* Header */}
+        <header
+          className="sticky top-0 z-40 h-16 shrink-0 border-b border-[#E8E4DE] px-4 sm:px-6"
+          style={{ backgroundColor: "#FAF9F7" }}
+        >
+          <div className="flex h-full w-full items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="hidden lg:flex items-center gap-3 min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto shrink-0 object-contain" />
+                <div className="h-6 w-px shrink-0 bg-slate-200" />
+                <span className="font-bold text-brand-slate text-sm tracking-tight truncate">
+                  University of Malawi
+                </span>
+              </div>
+              <div className="flex lg:hidden items-center min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/mthandizi.png" alt="Mthandizi" className="h-8 w-auto shrink-0 object-contain" />
+              </div>
+            </div>
 
-          {/* Right — profile icon + dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen((v) => !v)}
-              className="w-10 h-10 rounded-full bg-brand-slate/10 border-2 border-brand-slate/20 flex items-center justify-center text-brand-slate hover:bg-brand-slate/20 transition-colors focus:outline-none"
-              title={storedUser ? `${storedUser.firstName ?? ""} ${storedUser.lastName ?? ""}`.trim() || "Admin" : "Admin"}
-            >
-              <UserCircle2 size={22} strokeWidth={1.5} />
-            </button>
+            <div className="relative shrink-0" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen((v) => !v)}
+                className="flex h-9 w-9 items-center justify-center focus:outline-none group"
+                title={displayName}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/profile.png"
+                  alt="Profile"
+                  className="h-6 w-6 object-contain transition-all duration-200 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                />
+              </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
-                {/* User info inside dropdown */}
+              <div
+                className="absolute right-0 mt-2 w-56 rounded-none shadow-xl border border-[#E8E4DE] overflow-hidden z-50"
+                style={{ backgroundColor: "#FAF9F7" }}
+              >
                 <div className="px-4 py-3 border-b border-slate-100">
-                  <p className="text-sm font-bold text-brand-slate leading-none truncate">
-                    {storedUser ? `${storedUser.firstName ?? ""} ${storedUser.lastName ?? ""}`.trim() || "Administrator" : "Administrator"}
-                  </p>
+                  <p className="text-sm font-bold text-brand-slate leading-none truncate">{displayName}</p>
                   <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">Admin Portal</p>
                 </div>
                 <button
-                  onClick={() => { setDropdownOpen(false); }}
+                  onClick={() => setDropdownOpen(false)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <KeyRound size={15} className="text-brand-blue" />
@@ -193,13 +210,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </button>
               </div>
             )}
+            </div>
           </div>
         </header>
 
         <div className="p-8 max-w-7xl mx-auto">
           {children}
         </div>
-      </motion.main>
+      </main>
     </div>
   );
 }

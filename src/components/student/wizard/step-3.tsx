@@ -7,9 +7,9 @@ import { EducationLevel } from "@/lib/store/use-application-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAcademicYearOptions } from "@/lib/api";
 
-const labelClass = "text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2 block";
-const inputClass = "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors";
-const selectClass = "w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none focus:border-brand-blue transition-colors";
+const labelClass = "text-sm font-medium text-slate-700 mb-2 block";
+const inputClass = "h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light hover:border-brand-blue focus:border-brand-blue transition-colors";
+const selectClass = "wizard-select w-full h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none hover:border-brand-blue focus:border-brand-blue transition-colors";
 
 type TabKey = "primary" | "secondary" | "tertiary";
 const TABS: { key: TabKey; label: string }[] = [
@@ -84,7 +84,7 @@ export default function Step3() {
     <div className="space-y-10">
       <div className="space-y-6">
         <div>
-          <p className="text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2">Current Academic Details</p>
+          <p className="text-sm font-medium text-slate-700 mb-2">Current Academic Details</p>
           <p className="text-sm text-slate-500">Tell us about your current university enrollment before adding your education history.</p>
         </div>
 
@@ -127,21 +127,21 @@ export default function Step3() {
 
       <div className="space-y-2">
         <div>
-          <p className="text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2">Education History</p>
+          <p className="text-sm font-medium text-slate-700 mb-2">Education History</p>
           <p className="text-sm text-slate-500">Add each level only if you have attended it. If you start filling a level, complete all its fields.</p>
         </div>
 
       {/* Tabs */}
-        <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl">
+        <div className="flex gap-2 p-1.5 border border-slate-200" style={{ backgroundColor: "#F0EDE8" }}>
           {TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                "flex-1 h-11 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300",
+                "flex-1 h-11 font-black text-xs uppercase tracking-widest transition-all duration-300",
                 activeTab === tab.key
-                  ? "bg-white text-brand-blue shadow-md shadow-slate-200/80"
+                  ? "text-brand-blue shadow-sm border border-slate-200"
                   : "text-slate-400 hover:text-slate-600"
               )}
             >

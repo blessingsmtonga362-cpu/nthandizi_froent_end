@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Mail, ArrowLeft, RefreshCcw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,12 @@ import { verifyOtp, resendOtp } from "@/lib/api";
 
 export default function VerifyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setEmail(params.get("email") || "");
+  }, []);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -123,7 +127,7 @@ export default function VerifyPage() {
                 <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 size={40} />
                 </div>
-                <h2 className="text-3xl font-black text-brand-slate mb-3 tracking-tight">Email Verified!</h2>
+                <h2 className="text-3xl font-display font-bold text-brand-slate mb-3 tracking-tight">Email Verified!</h2>
                 <p className="text-slate-500 text-sm font-medium">
                   Your account is confirmed. Redirecting you to sign in...
                 </p>
@@ -136,7 +140,7 @@ export default function VerifyPage() {
                   <Mail size={36} />
                 </div>
 
-                <h2 className="text-3xl font-black text-brand-slate mb-3 tracking-tight">Verify Your Email</h2>
+                <h2 className="text-3xl font-display font-bold text-brand-slate mb-3 tracking-tight">Verify Your Email</h2>
                 <p className="text-slate-500 text-sm mb-10 leading-relaxed font-medium">
                   We&apos;ve sent a 6-digit code to <br />
                   <span className="font-bold text-brand-blue">{email}</span>

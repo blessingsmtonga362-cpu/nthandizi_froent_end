@@ -10,43 +10,72 @@ export function useOfflinePersistence() {
 
   useEffect(() => {
     const initDB = async () => {
-      const db = await openDB(DB_NAME, 2, {
-        upgrade(db) {
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
+      try {
+        const db = await openDB(DB_NAME, 2, {
+          upgrade(db) {
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME);
+            }
+          },
+        });
+        const saved = await db.get(STORE_NAME, 'current_draft');
+        if (saved) {
+          if (saved.personal) updatePersonal(saved.personal);
+          if (saved.family) updateFamily(saved.family);
+          if (saved.education) {
+            updateEducation('primary', saved.education.primary);
+            updateEducation('secondary', saved.education.secondary);
+            updateEducation('tertiary', saved.education.tertiary);
           }
-        },
-      });
-      const saved = await db.get(STORE_NAME, 'current_draft');
-      if (saved) {
-        if (saved.personal) updatePersonal(saved.personal);
-        if (saved.family) updateFamily(saved.family);
-        if (saved.education) {
-          updateEducation('primary', saved.education.primary);
-          updateEducation('secondary', saved.education.secondary);
-          updateEducation('tertiary', saved.education.tertiary);
+          if (saved.academics) updateAcademics(saved.academics);
+          if (saved.payment) updatePayment(saved.payment);
+          if (saved.reviewVisited) {
+            useApplicationStore.getState().setReviewVisited(true);
+          }
+          if (saved.declarationAccepted) {
+            useApplicationStore.getState().setDeclarationAccepted(true);
+          }
+          if (saved.currentStep) {
+            useApplicationStore.getState().setStep(saved.currentStep);
+          }
         }
-        if (saved.academics) updateAcademics(saved.academics);
-        if (saved.payment) updatePayment(saved.payment);
+      } catch {
+        // IndexedDB unavailable (private browsing, storage quota, etc.) — silently skip
       }
     };
-    initDB();
+    initDB().catch(() => { /* IndexedDB unavailable — silently skip */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const syncDB = async () => {
-      const db = await openDB(DB_NAME, 2);
-      // Don't persist File objects — strip them before saving
-      const serializable = {
-        personal: { ...data.personal, studentIdFile: null, nationalIdFile: null },
-        family: { ...data.family, deathCertificateFile: null, guarantorNationalIdFile: null, guarantorConsentFile: null },
-        education: data.education,
-        academics: { ...data.academics, transcriptFile: null },
-        payment: data.payment,
-      };
-      await db.put(STORE_NAME, serializable, 'current_draft');
+      try {
+        const db = await openDB(DB_NAME, 2);
+        // Don't persist File objects — strip them before saving
+        const serializable = {
+          personal: { ...data.personal, studentIdFile: null, nationalIdFile: null },
+          family: { ...data.family, deathCertificateFile: null, guarantorNationalIdFile: null, guarantorConsentFile: null },
+          education: data.education,
+          academics: { ...data.academics, transcriptFile: null },
+          payment: data.payment,
+          currentStep: data.currentStep,
+          reviewVisited: data.reviewVisited,
+          declarationAccepted: data.declarationAccepted,
+        };
+        await db.put(STORE_NAME, serializable, 'current_draft');
+      } catch {
+        // Sync failure is non-fatal — draft is still in memory
+      }
     };
-    if (data.lastSaved) syncDB();
+    if (data.lastSaved) syncDB().catch(() => { /* Sync failure is non-fatal */ });
   }, [data]);
+}
+
+export async function clearOfflinePersistence() {
+  try {
+    const db = await openDB(DB_NAME, 2);
+    await db.delete(STORE_NAME, 'current_draft');
+  } catch {
+    // Nothing to clear or IndexedDB unavailable
+  }
 }

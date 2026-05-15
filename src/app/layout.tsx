@@ -1,9 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css"; // <--- THIS LINE IS CRITICAL
-
-const inter = Inter({ subsets: ["latin"] });
+import { ErrorHandler } from "@/components/error-handler";
 
 export const metadata: Metadata = {
   title: "UNIMA Student Support System",
@@ -17,7 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className="font-sans">
+        <ErrorHandler />
+        {children}
+      </body>
     </html>
   );
 }

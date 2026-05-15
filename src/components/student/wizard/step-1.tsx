@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 import { MALAWI_DISTRICTS, MALAWI_TAS } from "@/lib/constants/malawi-data";
 import { motion, AnimatePresence } from "framer-motion";
 
-const selectClass = "w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none focus:border-brand-blue transition-colors";
-const labelClass = "text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2 block";
-const inputClass = "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors";
+const selectClass = "wizard-select w-full h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none hover:border-brand-blue focus:border-brand-blue transition-colors";
+const labelClass = "text-sm font-medium text-slate-700 mb-2 block";
+const inputClass = "h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light hover:border-brand-blue focus:border-brand-blue transition-colors [background-color:#F7F5F2]";
 
 const PAYMENT_METHODS = [
   { value: "airtel", label: "Airtel Money", type: "mobile" },
@@ -64,7 +64,14 @@ export default function Step1() {
         </div>
         <div className="space-y-2">
           <label className={labelClass}>Date of Birth</label>
-          <Input type="date" className={inputClass} value={p.dateOfBirth} onChange={(e) => updatePersonal({ dateOfBirth: e.target.value })} />
+          <div className="relative">
+            <Input
+              type="date"
+              className={cn(inputClass, "pr-4 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:top-1/2 [&::-webkit-calendar-picker-indicator]:-translate-y-1/2 [&::-webkit-calendar-picker-indicator]:cursor-pointer")}
+              value={p.dateOfBirth}
+              onChange={(e) => updatePersonal({ dateOfBirth: e.target.value })}
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <label className={labelClass}>Registration Number</label>
@@ -122,7 +129,7 @@ export default function Step1() {
 
       {/* Payment Details */}
       <div className="space-y-4">
-        <p className={labelClass}>Payment Details</p>
+        <p className="text-sm font-medium text-slate-700">Payment Details</p>
         <div className="space-y-2">
           <label className={labelClass}>Payment Method</label>
           <select
@@ -187,12 +194,12 @@ export default function Step1() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={cn(
-              "p-4 rounded-2xl border flex items-center gap-4",
+              "p-4 border flex items-center gap-4",
               isMobile ? "bg-amber-50 border-amber-100" : "bg-blue-50 border-blue-100"
             )}
           >
             <div className={cn(
-              "w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs",
+              "w-9 h-9 flex items-center justify-center font-black text-xs",
               isMobile ? "bg-amber-500 text-white" : "bg-blue-600 text-white"
             )}>
               {isMobile ? "M" : "B"}

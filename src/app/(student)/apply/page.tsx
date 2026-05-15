@@ -1,18 +1,19 @@
 "use client";
 
 import { useApplicationStore } from "@/lib/store/use-application-store";
-import { useOfflinePersistence } from "@/hooks/use-offline-persistence";
+import { useOfflinePersistence, clearOfflinePersistence } from "@/hooks/use-offline-persistence";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import Step1 from "@/components/student/wizard/step-1";
 import Step2 from "@/components/student/wizard/step-2";
 import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { submitApplication } from "@/lib/api";
+import { submitApplication, getApplicationStatus } from "@/lib/api";
+import { calculateApplicationProgress } from "@/lib/application-progress";
+import Link from "next/link";
 
 const STEPS = ["Personal", "Family", "Education", "Review"];
 
@@ -80,15 +81,36 @@ export default function ApplicationWizard() {
   const { data, setStep, reset } = useApplicationStore();
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [started, setStarted] = useState(false);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const router = useRouter();
+
+  // Check on mount whether the application was already submitted
+  useEffect(() => {
+    getApplicationStatus()
+      .then((s) => {
+        if (s.status === "submitted" || s.status === "reviewing" || s.status === "approved") {
+          setAlreadySubmitted(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const nextStep = () => setStep(Math.min(data.currentStep + 1, 4));
   const prevStep = () => setStep(Math.max(data.currentStep - 1, 1));
+
+  // If the store already has progress, skip the landing screen
+  const showLanding = !started && data.currentStep === 1 &&
+    !data.personal.firstName && !data.personal.surname;
 
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmitError("");
     try {
+      if (!data.declarationAccepted) {
+        throw new Error("Please accept the declaration before submitting your application.");
+      }
+
       const educationValidationError =
         getIncompleteEducationMessage("Primary", data.education.primary) ??
         getIncompleteEducationMessage("Secondary", data.education.secondary) ??
@@ -118,6 +140,8 @@ export default function ApplicationWizard() {
       };
       const response = await submitApplication(payload);
       reset();
+      await clearOfflinePersistence();
+      localStorage.removeItem("application_started");
       const params = new URLSearchParams({
         submittedAt: response.submittedAt,
         status: response.applicationStatus,
@@ -132,110 +156,149 @@ export default function ApplicationWizard() {
 
   return (
     <div className="max-w-4xl mx-auto pb-32 pt-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-brand-slate tracking-tight">Student Profiling</h1>
-          <p className="text-slate-500 font-medium mt-1 italic">Provide honest information for accurate assessment.</p>
-        </div>
-      </div>
 
-      {/* Stepper */}
-      <div className="hidden md:flex justify-between mb-16 relative px-4">
-        <div className="absolute top-[20px] left-0 w-full h-[2px] bg-slate-100 z-0" />
-        {STEPS.map((step, i) => {
-          const isCurrent = data.currentStep === i + 1;
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setStep(i + 1)}
-              className="relative z-10 flex flex-col items-center gap-3 group focus:outline-none"
-            >
-              <div className={cn(
-                "w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black transition-colors duration-300 cursor-pointer",
-                isCurrent
-                  ? "bg-brand-blue text-white shadow-xl shadow-brand-blue/30"
-                  : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-              )}>
-                {i + 1}
-              </div>
-              <span className={cn(
-                "text-[10px] font-black uppercase tracking-widest absolute -bottom-8 whitespace-nowrap transition-colors",
-                isCurrent ? "text-brand-blue" : "text-slate-300 group-hover:text-slate-400"
-              )}>
-                {step}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Form Container */}
-      <motion.div layout className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-        <div className="p-8 md:p-12 min-h-[400px]">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={data.currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4, ease: "circOut" }}
-            >
-              {data.currentStep === 1 && <Step1 />}
-              {data.currentStep === 2 && <Step2 />}
-              {data.currentStep === 3 && <Step3 />}
-              {data.currentStep === 4 && <Step4 />}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Nav Footer */}
-        <div className="border-t border-slate-50 p-8 bg-brand-surface/50 flex flex-col sm:flex-row justify-between items-center gap-6">
-          <Button
-            variant="ghost"
-            onClick={prevStep}
-            disabled={data.currentStep === 1}
-            className="font-black text-brand-blue uppercase tracking-widest text-xs h-12 px-8 rounded-xl"
+      {/* ── Already submitted screen ── */}
+      {alreadySubmitted ? (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8"
+        >
+          <div className="w-20 h-20 bg-emerald-50 flex items-center justify-center">
+            <CheckCircle2 size={44} className="text-emerald-500" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight mb-3">
+              Application Already Submitted
+            </h1>
+            <p className="text-slate-500 font-medium max-w-md">
+              You have already completed and submitted your profiling application.
+              You cannot apply again. Track your progress on the status page.
+            </p>
+          </div>
+          <Link
+            href="/status"
+            className="h-14 px-12 bg-brand-slate text-white font-bold text-sm tracking-wide hover:bg-brand-blue hover:scale-[1.02] transition-all duration-200 flex items-center gap-2"
           >
-            <ChevronLeft className="mr-2 w-4 h-4" /> Back
-          </Button>
-
-          <div className="flex flex-col items-center">
-            <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-1">Section</div>
-            <div className="text-lg font-black text-brand-slate">
-              {data.currentStep} <span className="text-slate-300">/</span> 4
-            </div>
-            {submitError && (
-              <p className="text-red-500 text-[10px] font-bold mt-2 text-center max-w-xs">{submitError}</p>
-            )}
+            Track Application Status <ChevronRight size={18} />
+          </Link>
+        </motion.div>
+      ) : showLanding ? (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/apply.png" alt="Application" className="h-16 w-16 object-contain" />
+          <div>
+            <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">Student Profiling</h1>
+            <p className="text-slate-500 font-medium mt-2 max-w-md">
+              Complete your profile to be considered for support.
+              The process has 4 sections and takes about 10 minutes.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.setItem("application_started", "true");
+              setStarted(true);
+            }}
+            className="h-14 px-12 bg-brand-slate text-white font-bold text-sm tracking-wide hover:bg-brand-blue hover:scale-[1.02] transition-all duration-200"
+          >
+            Start Application
+          </button>
+        </motion.div>
+      ) : (
+        <>
+          {/* Header — step counter + dynamic title */}
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-brand-blue mb-1">
+              Step {data.currentStep} of {STEPS.length}
+            </p>
+            <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">
+              {STEPS[data.currentStep - 1]} Details
+            </h1>
           </div>
 
-          {data.currentStep < 4 ? (
+          <div className="mb-10">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-medium text-slate-500">Application progress</span>
+              <span className="text-xs font-bold text-brand-blue">{calculateApplicationProgress(data).percent}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden" style={{ backgroundColor: "#F7F5F2" }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${calculateApplicationProgress(data).percent}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="h-full bg-brand-blue"
+              />
+            </div>
+          </div>
+
+          {/* Form — no box, fields rest directly on the background */}
+          <div className="min-h-[400px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={data.currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4, ease: "circOut" }}
+              >
+                {data.currentStep === 1 && <Step1 />}
+                {data.currentStep === 2 && <Step2 />}
+                {data.currentStep === 3 && <Step3 />}
+                {data.currentStep === 4 && <Step4 />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Nav Footer */}
+          <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-6">
             <Button
-              onClick={nextStep}
-              className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
+              variant="ghost"
+              onClick={prevStep}
+              disabled={data.currentStep === 1}
+              className="font-bold text-brand-blue text-sm h-12 px-8"
             >
-              Continue <ChevronRight className="ml-2 w-5 h-5" />
+              <ChevronLeft className="mr-2 w-4 h-4" /> Back
             </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="bg-brand-blue hover:bg-brand-blueDark text-white h-14 px-12 rounded-2xl font-black text-md shadow-lg shadow-brand-blue/20 w-full sm:w-auto"
-            >
-              {submitting ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  Submitting...
-                </div>
-              ) : (
-                <>Submit Profile <ChevronRight className="ml-2 w-5 h-5" /></>
+
+            <div className="flex flex-col items-center">
+              <div className="text-xs text-slate-400 font-medium">
+                Step {data.currentStep} of 4
+              </div>
+              {submitError && (
+                <p className="text-red-500 text-[10px] font-bold mt-2 text-center max-w-xs">{submitError}</p>
               )}
-            </Button>
-          )}
-        </div>
-      </motion.div>
+            </div>
+
+            {data.currentStep < 4 ? (
+              <button
+                onClick={nextStep}
+                className="h-14 px-12 bg-brand-slate text-white font-bold text-sm w-full sm:w-auto tracking-wide hover:bg-brand-blue hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                Continue <ChevronRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="h-14 px-12 bg-brand-slate text-white font-bold text-sm w-full sm:w-auto tracking-wide hover:bg-brand-blue hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>Submit Profile <ChevronRight className="w-5 h-5" /></>
+                )}
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -18,20 +17,19 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  useEffect(() => {
+    setEmail("");
+    setPassword("");
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
     try {
       const { token, user } = await login(email.trim().toLowerCase(), password);
-
-      // Persist session
       setToken(token);
       setStoredUser(user);
-
-      // Role-based redirect — the frontend doesn't need to know which email
-      // is admin; the backend tells us via the role field.
       if (user.role === "admin") {
         router.push("/admin/dashboard");
       } else {
@@ -45,129 +43,146 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-brand-surface flex flex-col justify-center py-12 px-6 selection:bg-brand-blue/30">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="max-w-[440px] w-full mx-auto"
-      >
-        {/* Branding Header */}
-        <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center justify-center mb-8 hover:scale-105 transition-transform">
-            <img src="/mthandizi.png" alt="Mthandizi Logo" className="h-12 w-auto" />
-          </Link>
-          <h2 className="text-3xl font-black text-brand-slate tracking-tight">Student Portal</h2>
-          <p className="text-slate-500 font-medium mt-2">Sign in to manage your profiling application.</p>
-        </div>
+  const fieldClass = "h-14 rounded-none border border-slate-300 px-4 font-normal text-slate-800 placeholder:text-slate-400 placeholder:font-light hover:border-brand-blue focus:border-brand-blue transition-colors";
 
-        {/* Login Card */}
-        <div className="bg-white p-10 rounded-[40px] shadow-2xl shadow-slate-200/60 border border-slate-100">
-          <form className="space-y-6" onSubmit={handleLogin}>
-            
-            {/* Email Field */}
+  return (
+    <div className="min-h-screen flex">
+      {/* ── Left panel — photo ── */}
+      <div className="hidden lg:block relative w-1/2 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/3-hanz.jpg"
+          alt="Background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-brand-slate/70" />
+
+        {/* Animated logo centred on overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.img
+            src="/mthandizi.png"
+            alt="Mthandizi"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="h-24 w-auto object-contain brightness-0 invert"
+          />
+        </div>
+      </div>
+
+      {/* ── Right panel — form ── */}
+      <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-20" style={{ backgroundColor: "#FAF9F7" }}>
+        {/* Go back */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-blue transition-colors mb-12 self-start"
+        >
+          <ArrowLeft size={16} />
+          Go back
+        </Link>
+
+        <motion.div
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="max-w-sm w-full"
+        >
+          {/* Heading */}
+          <h1 className="text-4xl font-display font-bold text-brand-slate tracking-tight mb-1">
+            Welcome!
+          </h1>
+          <p className="text-slate-500 font-medium mb-10">
+            Sign in to your account.
+          </p>
+
+          <form autoComplete="off" className="space-y-6" onSubmit={handleLogin}>
+            <input type="text" name="username" autoComplete="username" value="" readOnly hidden />
+            <input type="password" name="password" autoComplete="new-password" value="" readOnly hidden />
+
+            {/* Email */}
             <div className="space-y-2">
-              <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider ml-1 block">
-                Email
-              </label>
-              <Input 
-                type="email" 
-                placeholder="email"
+              <label className="text-sm font-medium text-slate-700 block">Email</label>
+              <Input
+                type="email"
+                placeholder="your@unima.ac.mw"
+                autoComplete="username"
                 required
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (error) setError("");
-                }}
-                className={cn(
-                  "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors",
-                  error ? "border-red-500 ring-red-500" : ""
-                )}
+                onChange={(e) => { setEmail(e.target.value); if (error) setError(""); }}
+                className={cn(fieldClass, error ? "border-red-500" : "")}
               />
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label className="text-[11px] font-bold uppercase text-slate-900 tracking-wider block">
-                  Password
-                </label>
-                <Link href="#" className="text-[10px] text-brand-blue font-black uppercase tracking-widest hover:underline">
-                  Forgot?
-                </Link>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-slate-700 block">Password</label>
+                <Link href="#" className="text-xs text-brand-blue hover:underline">Forgot?</Link>
               </div>
               <div className="relative">
-                <Input 
+                <Input
                   required
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error) setError("");
-                  }}
-                  className="h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors"
+                  onChange={(e) => { setPassword(e.target.value); if (error) setError(""); }}
+                  className={fieldClass}
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-brand-blue transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-blue transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            {/* Error message */}
+            {/* Error */}
             <AnimatePresence>
               {error && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
+                <motion.p
+                  initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-red-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ml-1"
+                  exit={{ opacity: 0, y: -8 }}
+                  className="text-red-500 text-xs flex items-center gap-1.5"
                 >
-                  <AlertCircle className="w-3.5 h-3.5" /> {error}
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {error}
                 </motion.p>
               )}
             </AnimatePresence>
 
-            {/* Sign In Button */}
-            <Button 
+            {/* Sign In */}
+            <button
+              type="submit"
               disabled={isLoading}
-              className="w-full h-16 bg-brand-blue hover:bg-brand-blueDark text-white font-black rounded-[20px] shadow-xl shadow-brand-blue/20 text-md transition-all active:scale-[0.98]"
+              className="w-full h-14 bg-brand-slate text-white font-bold text-sm tracking-wide hover:bg-brand-blue hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3"
             >
               {isLoading ? (
-                <div className="flex items-center gap-3">
+                <>
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                   Authenticating...
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  Sign In
-                </div>
-              )}
-            </Button>
+                </>
+              ) : "Sign In"}
+            </button>
 
-            {/* Divider */}
-            <div className="relative py-4 flex items-center">
-              <div className="flex-grow border-t border-slate-100"></div>
-              <span className="flex-shrink mx-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">or</span>
-              <div className="flex-grow border-t border-slate-100"></div>
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-slate-200" />
+              <span className="mx-4 text-xs text-slate-400">or</span>
+              <div className="flex-grow border-t border-slate-200" />
             </div>
 
-            {/* Registration Redirect */}
-            <Button 
-              variant="outline" 
-              className="w-full h-16 border-2 border-slate-100 rounded-[20px] text-brand-slate font-black hover:bg-slate-50 hover:border-slate-200 transition-all text-md" 
-              asChild
+            <Link
+              href="/register"
+              className="w-full h-14 border border-slate-300 text-brand-slate font-bold text-sm hover:border-brand-blue hover:text-brand-blue transition-colors flex items-center justify-center"
             >
-              <Link href="/register">Create Student Account</Link>
-            </Button>
+              Create Student Account
+            </Link>
           </form>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

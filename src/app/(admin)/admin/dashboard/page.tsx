@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import {
   getAdminApplicantDetails,
   getAdminDashboardStats,
@@ -57,17 +58,11 @@ function statusBadgeClass(status: AdminApplicantStatus) {
   }
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white">
+    <section className="border border-slate-200 bg-white">
       <div className="border-b border-slate-100 px-5 py-4">
-        <h3 className="text-sm font-black uppercase tracking-widest text-brand-slate">{title}</h3>
+        <h3 className="text-sm font-display font-bold uppercase tracking-widest text-brand-slate">{title}</h3>
       </div>
       <div className="p-5">{children}</div>
     </section>
@@ -160,12 +155,12 @@ function EducationList({
       </div>
 
       {records.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-400">
+        <div className="border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-400">
           No records submitted for this level.
         </div>
       ) : (
         records.map((record) => (
-          <div key={record.id} className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+          <div key={record.id} className="border border-slate-200 bg-slate-50/60 p-4">
             <DetailGrid
               fields={[
                 { label: "School Name", value: formatValue(record.schoolName) },
@@ -185,6 +180,7 @@ function EducationList({
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
   const [details, setDetails] = useState<AdminApplicantDetailsResponse | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -276,9 +272,9 @@ export default function AdminDashboard() {
   };
 
   const tiles = [
-    { label: "Total Applications", value: stats?.totalApplications ?? "—", icon: Users, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
-    { label: "Approved Applicants", value: stats?.approvedSupport ?? "—", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-    { label: "Flagged Applicants", value: stats?.flaggedFiles ?? "—", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50", border: "border-red-100" },
+    { label: "Total applications", value: stats?.totalApplications ?? "—", icon: Users, color: "text-blue-600", href: "/admin/applicants" },
+    { label: "Approved applicants", value: stats?.approvedSupport ?? "—", icon: CheckCircle, color: "text-emerald-600", href: "/admin/approved" },
+    { label: "Flagged applicants", value: stats?.flaggedFiles ?? "—", icon: AlertCircle, color: "text-red-600", href: "/admin/flagged" },
   ];
 
   const personal = details?.application.personalDetails as AdminPersonalDetails | null | undefined;
@@ -290,7 +286,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-2xl font-black text-brand-slate tracking-tight">Applicant Review Dashboard</h1>
+          <h1 className="text-2xl font-display font-bold text-brand-slate tracking-tight">Applicant Review Dashboard</h1>
           <p className="text-slate-400 text-sm font-medium mt-1">
             Review submitted student applications, inspect supporting details, and record decisions with comments.
           </p>
@@ -304,37 +300,41 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
-            className="bg-white p-6 rounded-2xl border border-slate-200 relative overflow-hidden"
+            onClick={() => router.push(stat.href)}
+            className="group bg-white p-6 border border-slate-200 relative overflow-hidden cursor-pointer hover:border-brand-blue hover:shadow-[0_16px_48px_-8px_rgba(15,23,42,0.22)] hover:scale-[1.02] transition-all duration-200"
           >
-            <div className="flex justify-between items-start mb-5">
-              <div className={cn("p-3 rounded-xl border", stat.bg, stat.color, stat.border)}>
-                <stat.icon size={20} />
+            <div className="origin-top-left transition-transform duration-200 ease-out group-hover:scale-[1.06]">
+              <div className="mb-5">
+                <stat.icon
+                  size={24}
+                  className={cn(stat.color, "transition-transform duration-200 group-hover:scale-110")}
+                />
               </div>
+              <p className="text-slate-400 text-sm font-medium">{stat.label}</p>
+              <h3 className="text-3xl font-display font-bold text-brand-slate mt-1">
+                {loading ? <span className="inline-block w-14 h-7 bg-slate-100 animate-pulse" /> : stat.value.toLocaleString()}
+              </h3>
             </div>
-            <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">{stat.label}</p>
-            <h3 className="text-3xl font-black text-brand-slate mt-1">
-              {loading ? <span className="inline-block w-14 h-7 bg-slate-100 rounded animate-pulse" /> : stat.value.toLocaleString()}
-            </h3>
           </motion.div>
         ))}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-          <h3 className="font-bold text-brand-slate text-sm uppercase tracking-widest">Priority Review Queue</h3>
-          <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-lg border border-slate-200">
+          <h3 className="font-bold text-brand-slate text-sm">Priority review queue</h3>
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-200">
             <ShieldCheck size={12} className="text-brand-blue" />
-            <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wide">Internal Access</span>
+            <span className="text-xs font-medium text-slate-500">Internal access</span>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                 <th className="px-6 py-4">Rank</th>
                 <th className="px-6 py-4">Student</th>
                 <th className="px-6 py-4">Programme</th>
-                <th className="px-6 py-4 text-center">Need Index</th>
+                <th className="px-6 py-4 text-center">Need index</th>
                 <th className="px-6 py-4 text-center">Status</th>
                 <th className="px-6 py-4 text-right">Action</th>
               </tr>
@@ -360,17 +360,17 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 font-bold text-brand-blue text-sm">#{String(i + 1).padStart(2, "0")}</td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-bold text-brand-slate">{row.name}</p>
-                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mt-0.5">
+                      <p className="text-xs font-medium text-slate-400 mt-0.5">
                         {row.registrationNumber || row.id}
                       </p>
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                    <td className="px-6 py-4 text-sm font-medium text-slate-500">
                       {row.program}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
                         className={cn(
-                          "inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold border",
+                          "inline-flex border px-2.5 py-1 text-[11px] font-bold",
                           row.score > 80 ? "bg-red-50 text-red-600 border-red-200" : row.score > 60 ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-emerald-50 text-emerald-600 border-emerald-200",
                         )}
                       >
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", statusBadgeClass(row.status))}>
+                      <span className={cn("inline-flex border px-2.5 py-1 text-xs font-medium", statusBadgeClass(row.status))}>
                         {formatApplicantStatus(row.status)}
                       </span>
                     </td>
@@ -386,9 +386,9 @@ export default function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => void openApplicant(row.id)}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 transition-colors hover:border-brand-blue hover:text-brand-blue"
+                        className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:border-brand-blue hover:text-brand-blue"
                       >
-                        View More
+                        View more
                         <ArrowUpRight size={14} />
                       </button>
                     </td>
@@ -406,8 +406,8 @@ export default function AdminDashboard() {
             <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
               <div className="flex items-start justify-between gap-4 px-6 py-5">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Applicant Review</p>
-                  <h2 className="mt-1 text-xl font-black text-brand-slate">
+                  <p className="text-[10px] font-display font-bold uppercase tracking-[0.25em] text-slate-400">Applicant Review</p>
+                  <h2 className="mt-1 text-xl font-display font-bold text-brand-slate">
                     {details?.applicant.firstName} {details?.applicant.lastName}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">{details?.applicant.email ?? selectedApplicantId}</p>
@@ -415,7 +415,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={closeApplicant}
-                  className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:text-slate-700"
+                  className="border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:text-slate-700"
                 >
                   <X size={18} />
                 </button>
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
                   Loading applicant details...
                 </div>
               ) : detailsError ? (
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                <div className="border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
                   {detailsError}
                 </div>
               ) : details ? (
@@ -437,10 +437,10 @@ export default function AdminDashboard() {
                   <SectionCard title="Applicant Summary">
                     <div className="space-y-4">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className={cn("inline-flex rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest", statusBadgeClass(details.applicant.status))}>
+                        <span className={cn("inline-flex border px-3 py-1 text-[10px] font-bold uppercase tracking-widest", statusBadgeClass(details.applicant.status))}>
                           {formatApplicantStatus(details.applicant.status)}
                         </span>
-                        <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                        <span className="inline-flex border border-slate-200 bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
                           Completion {details.applicationMeta.completionPercentage}%
                         </span>
                       </div>
@@ -556,7 +556,7 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => setReviewStatus("approved")}
                           className={cn(
-                            "rounded-xl border px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors",
+                            "border px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors",
                             reviewStatus === "approved" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600",
                           )}
                         >
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => setReviewStatus("flagged")}
                           className={cn(
-                            "rounded-xl border px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors",
+                            "border px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors",
                             reviewStatus === "flagged" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-slate-200 bg-white text-slate-600",
                           )}
                         >
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
                           value={reviewComments}
                           onChange={(e) => setReviewComments(e.target.value)}
                           rows={5}
-                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-brand-blue"
+                          className="w-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-brand-blue"
                           placeholder="Record the decision context for this application."
                         />
                       </div>
@@ -604,7 +604,7 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => void handleReviewSubmit()}
                           disabled={reviewSubmitting}
-                          className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-brand-blueDark disabled:opacity-60"
+                          className="inline-flex items-center gap-2 bg-brand-blue px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-brand-blueDark disabled:opacity-60"
                         >
                           {reviewSubmitting && <Loader2 size={14} className="animate-spin" />}
                           Save Review
@@ -612,7 +612,7 @@ export default function AdminDashboard() {
                         <button
                           type="button"
                           onClick={closeApplicant}
-                          className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-600 transition-colors hover:bg-slate-50"
+                          className="border border-slate-200 bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-600 transition-colors hover:bg-slate-50"
                         >
                           Close
                         </button>

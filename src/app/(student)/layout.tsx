@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, KeyRound, UserCircle2 } from "lucide-react";
+import { LogOut, KeyRound } from "lucide-react";
 import { StudentNav } from "@/components/student/nav";
 import { useAuth } from "@/hooks/use-auth";
 import { logout, getStoredUser, type AuthUser } from "@/lib/api";
+import { clearOfflinePersistence } from "@/hooks/use-offline-persistence";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -13,13 +14,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { loading } = useAuth("student");
 
-  // Read display data directly from localStorage — works regardless of DEV_BYPASS_AUTH
   const [storedUser, setStoredUser] = useState<AuthUser | null>(null);
   useEffect(() => {
     setStoredUser(getStoredUser());
   }, []);
 
-  // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -32,16 +31,15 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   const handleSignOut = async () => {
     setOpen(false);
+    await clearOfflinePersistence();
     await logout();
     router.push("/login");
   };
 
   const handleChangePassword = () => {
     setOpen(false);
-    // wire to real flow later
   };
 
-  // Block render until auth resolves (only matters when guard is active)
   if (loading) return null;
 
   const displayName = storedUser?.firstName
@@ -49,40 +47,54 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     : (storedUser?.email ?? "");
 
   return (
-    <div className="flex min-h-screen bg-unima-surface">
+    <div className="flex min-h-screen" style={{ backgroundColor: "#FAF9F7" }}>
       <StudentNav />
       <main className="flex-1 pb-24 lg:pb-0">
-        {/* Header */}
-        <header className="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 px-6 flex items-center justify-between">
-          <div className="hidden lg:flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto object-contain" />
-            <div className="h-6 w-px bg-slate-200" />
-            <span className="font-bold text-unima-blue text-sm tracking-tight">University of Malawi</span>
-          </div>
-          <div className="lg:hidden flex items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/mthandizi.png" alt="Mthandizi" style={{ height: "32px", width: "auto" }} />
-          </div>
+        <header
+          className="sticky top-0 z-40 h-16 shrink-0 border-b border-[#E8E4DE] px-4 sm:px-6"
+          style={{ backgroundColor: "#FAF9F7" }}
+        >
+          <div className="flex h-full w-full items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="hidden lg:flex items-center gap-3 min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto shrink-0 object-contain" />
+                <div className="h-6 w-px shrink-0 bg-slate-200" />
+                <span className="font-bold text-brand-slate text-sm tracking-tight truncate">
+                  University of Malawi
+                </span>
+              </div>
+              <div className="flex lg:hidden items-center min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/mthandizi.png" alt="Mthandizi" className="h-8 w-auto shrink-0 object-contain" />
+              </div>
+            </div>
 
-          <div className="flex items-center gap-4">
-            {/* Avatar + Dropdown */}
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative shrink-0" ref={dropdownRef}>
               <button
                 onClick={() => setOpen((v) => !v)}
-                className="w-10 h-10 rounded-full bg-unima-gold/20 border-2 border-unima-gold flex items-center justify-center text-unima-blue hover:bg-unima-gold/30 transition-colors focus:outline-none"
+                className="flex h-9 w-9 items-center justify-center focus:outline-none group"
                 title={displayName || undefined}
               >
-                <UserCircle2 size={22} strokeWidth={1.5} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/profile.png"
+                  alt="Profile"
+                  className="h-6 w-6 object-contain transition-all duration-200 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                />
               </button>
 
               {open && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden z-50">
-                  {/* User info inside dropdown */}
+                <div
+                  className="absolute right-0 mt-2 w-56 rounded-none shadow-xl shadow-stone-200/60 border border-[#E8E4DE] overflow-hidden z-50"
+                  style={{ backgroundColor: "#FAF9F7" }}
+                >
                   <div className="px-4 py-3 border-b border-slate-100">
                     <p className="text-sm font-bold text-brand-slate leading-none truncate">{displayName || "Student"}</p>
                     {storedUser?.registrationNumber && (
-                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">{storedUser.registrationNumber}</p>
+                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">
+                        {storedUser.registrationNumber}
+                      </p>
                     )}
                   </div>
                   <button

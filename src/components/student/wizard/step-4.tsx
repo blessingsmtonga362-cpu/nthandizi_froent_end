@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApplicationStore } from "@/lib/store/use-application-store";
 import { Edit3, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +17,7 @@ function ReviewCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300">
+    <div className="bg-white border border-slate-200 overflow-hidden hover:shadow-md hover:shadow-slate-200/50 transition-all duration-300">
       <div className="px-8 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
         <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">{title}</span>
         <div className="flex items-center gap-4">
@@ -66,8 +66,12 @@ function Field({ label, value }: { label: string; value?: string | null }) {
 }
 
 export default function Step4() {
-  const { data, setStep } = useApplicationStore();
+  const { data, setStep, setReviewVisited, setDeclarationAccepted } = useApplicationStore();
   const { personal: p, family: f, education: e, academics: a, payment: pay } = data;
+
+  useEffect(() => {
+    setReviewVisited(true);
+  }, [setReviewVisited]);
 
   const PAYMENT_LABELS: Record<string, string> = {
     airtel: "Airtel Money", tnm: "TNM Mpamba",
@@ -235,7 +239,12 @@ export default function Step4() {
           reporting to the relevant university authorities.
         </p>
         <label className="flex items-center gap-3 mt-4 cursor-pointer group">
-          <input type="checkbox" className="w-5 h-5 rounded-lg border-2 border-slate-200 text-brand-blue focus:ring-brand-blue/20 cursor-pointer" />
+          <input
+            type="checkbox"
+            checked={data.declarationAccepted}
+            onChange={(e) => setDeclarationAccepted(e.target.checked)}
+            className="w-5 h-5 border-2 border-slate-200 text-brand-blue focus:ring-brand-blue/20 cursor-pointer"
+          />
           <span className="text-xs font-black text-brand-slate group-hover:text-brand-blue transition-colors">
             I agree to the above declaration
           </span>

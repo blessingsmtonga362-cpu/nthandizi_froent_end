@@ -1,3 +1,7 @@
+/* Import Red Hat fonts */
+@import url('https://static.redhat.com/fonts/red-hat-display/2/webfonts/red-hat-display.css');
+@import url('https://static.redhat.com/fonts/red-hat-text/1/webfonts/red-hat-text.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -28,7 +32,8 @@
 }
 
 body {
-  @apply bg-white text-slate-900;
+  background-color: #FAF9F7;
+  @apply text-slate-900 font-sans;
   font-feature-settings: "rlig" 1, "calt" 1;
   font-weight: 400;
 }
@@ -69,4 +74,9 @@ html {
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+/* Wizard form selects match input field background */
+.wizard-select {
+  background-color: #F7F5F2;
 }

@@ -5,20 +5,20 @@ import { MALAWI_TAS } from "@/lib/constants/malawi-data";
 import { Upload, CheckCircle2, User, Users, HeartHandshake, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const selectClass = "w-full h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none focus:border-brand-blue transition-colors";
-const labelClass = "text-[11px] font-bold uppercase text-slate-900 tracking-wider mb-2 block";
-const inputClass = "h-14 rounded-2xl bg-white border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light focus:border-brand-blue transition-colors";
+const selectClass = "wizard-select w-full h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none hover:border-brand-blue focus:border-brand-blue transition-colors";
+const labelClass = "text-sm font-medium text-slate-700 mb-2 block";
+const inputClass = "h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light hover:border-brand-blue focus:border-brand-blue transition-colors";
 
 function FileUploadField({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
   return (
     <div className="max-w-sm">
       <label className={labelClass}>{label}</label>
       <label className={cn(
-        "border-2 border-dashed rounded-2xl p-5 flex items-center gap-4 cursor-pointer transition-all",
+        "border-2 border-dashed p-5 flex items-center gap-4 cursor-pointer transition-all",
         file ? "bg-emerald-50/30 border-emerald-100" : "bg-slate-50 border-slate-200 hover:border-brand-blue/30 hover:bg-white"
       )}>
         <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+          "w-12 h-12 flex items-center justify-center shrink-0",
           file ? "bg-emerald-500 text-white" : "bg-white text-slate-400"
         )}>
           {file ? <CheckCircle2 size={22} /> : <Upload size={22} />}
@@ -36,10 +36,10 @@ function FileUploadField({ label, file, onChange }: { label: string; file: File 
 function SectionHeader({ title, icon: Icon }: { title: string; icon: any }) {
   return (
     <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-      <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+      <div className="w-8 h-8 bg-brand-blue/10 flex items-center justify-center text-brand-blue">
         <Icon size={18} />
       </div>
-      <h3 className="font-black text-brand-slate uppercase tracking-tight text-sm">{title}</h3>
+      <h3 className="font-display font-bold text-brand-slate uppercase tracking-tight text-sm">{title}</h3>
     </div>
   );
 }
@@ -61,8 +61,8 @@ function SiblingsSection() {
           <Input type="number" min="0" className={inputClass} value={f.numberStillInSchool} onChange={(e) => updateFamily({ numberStillInSchool: e.target.value })} />
         </div>
       </div>
-      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/70 p-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-5">Siblings Still in School by Level</p>
+      <div className="border border-slate-100 bg-slate-50/70 p-6">
+        <p className="text-sm font-medium text-slate-700 mb-5">Siblings Still in School by Level</p>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <label className={labelClass}>Primary</label>
@@ -181,7 +181,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>Postal Address</label><Input className={inputClass} value={f.parentPostalAddress} onChange={(e) => updateFamily({ parentPostalAddress: e.target.value })} /></div>
             </div>
           </div>
-          <div className="max-w-md p-6 bg-slate-50 rounded-3xl border border-slate-100">
+          <div className="max-w-md p-6 bg-slate-50 border border-slate-100">
             <label className={labelClass}>National ID of Deceased Parent</label>
             <Input className={inputClass} placeholder="Enter National ID" value={f.deceasedParentId} onChange={(e) => updateFamily({ deceasedParentId: e.target.value })} />
           </div>
@@ -209,7 +209,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>Postal Address</label><Input className={inputClass} value={f.guardianPostalAddress} onChange={(e) => updateFamily({ guardianPostalAddress: e.target.value })} /></div>
             </div>
           </div>
-          <div className="grid md:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+          <div className="grid md:grid-cols-2 gap-6 p-6 bg-slate-50 border border-slate-100">
             <div className="space-y-2">
               <label className={labelClass}>Deceased Father National ID</label>
               <Input className={inputClass} value={f.deceasedFatherId} onChange={(e) => updateFamily({ deceasedFatherId: e.target.value })} />
@@ -233,7 +233,7 @@ export default function Step2() {
             file={f.guarantorConsentFile} 
             onChange={(file) => updateFamily({ guarantorConsentFile: file })} 
           />
-          <div className="mt-8 flex items-start gap-3 p-5 bg-brand-blue/5 rounded-2xl border border-brand-blue/10">
+          <div className="mt-8 flex items-start gap-3 p-5 bg-brand-blue/5 border border-brand-blue/10">
             <Mail className="text-brand-blue mt-0.5 shrink-0" size={16} />
             <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wide leading-relaxed">
               Verify that the National IDs for deceased records and living guardians are accurate. 

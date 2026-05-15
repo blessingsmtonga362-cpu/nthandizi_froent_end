@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FileText, Activity, Bell, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
-  { name: "Home", href: "/dashboard", icon: Home },
-  { name: "Application", href: "/apply", icon: FileText },
-  { name: "Status", href: "/status", icon: Activity },
-  { name: "Notifications", href: "/notifications", icon: Bell },
+  { name: "Home",          href: "/dashboard",      img: "/myhome.png" },
+  { name: "Application",   href: "/apply",           img: "/apply.png" },
+  { name: "Status",        href: "/status",          img: "/statuss.png", iconClass: "w-6 h-6 min-w-[24px] min-h-[24px] scale-125" },
+  { name: "Notifications", href: "/notifications",   img: "/notification.png" },
 ];
 
 const EXPANDED_W = 256;
@@ -27,59 +27,46 @@ export function StudentNav() {
       <motion.aside
         animate={{ width: expanded ? EXPANDED_W : COLLAPSED_W }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        className="hidden lg:flex flex-col bg-[linear-gradient(180deg,#0f172a_0%,#16233f_52%,#1d4f78_100%)] h-screen sticky top-0 left-0 text-white overflow-hidden shrink-0 border-r border-white/10 shadow-2xl"
+        className="hidden lg:flex flex-col h-screen sticky top-0 left-0 overflow-hidden shrink-0 border-r border-[#E8E4DE] shadow-sm"
+        style={{ backgroundColor: "#FAF9F7" }}
       >
-        {/* Logo area */}
-        <div className={cn(
-          "flex items-center h-20 px-4 shrink-0 gap-3",
-          expanded ? "justify-between" : "justify-center"
-        )}>
+        {/* Logo area — matches main header height h-16 for visual alignment */}
+        <div className="flex items-center h-16 px-4 shrink-0 justify-between">
+          {/* Logo — always visible, clicking it expands when collapsed */}
+          <button
+            onClick={() => !expanded && setExpanded(true)}
+            title={!expanded ? "Expand sidebar" : undefined}
+            className={cn("focus:outline-none shrink-0", !expanded && "cursor-pointer")}
+            tabIndex={!expanded ? 0 : -1}
+          >
+            <img
+              src="/mthandizi.png"
+              alt="Mthandizi"
+              className="h-9 w-auto object-contain"
+            />
+          </button>
+
+          {/* Collapse arrow — visible only when expanded, fades out as sidebar collapses */}
           <AnimatePresence initial={false}>
             {expanded && (
-              <motion.div
-                key="logo"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="overflow-hidden flex-1 min-w-0"
+              <motion.button
+                key="collapse-btn"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setExpanded(false)}
+                title="Collapse sidebar"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-brand-blue hover:bg-brand-blue/5 transition-colors shrink-0"
               >
-                <img
-                  src="/mthandizi.png"
-                  alt="Mthandizi"
-                  className="h-9 w-auto object-contain"
-                />
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300 block mt-1">
-                  Student Portal
-                </span>
-              </motion.div>
+                <ChevronLeft size={18} />
+              </motion.button>
             )}
           </AnimatePresence>
-
-          {/* Toggle button — chevron rotates to hint direction */}
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            title={expanded ? "Collapse sidebar" : "Expand sidebar"}
-            className={cn(
-              "w-8 h-8 rounded-xl flex items-center justify-center transition-colors shrink-0",
-              "text-slate-300 hover:text-white hover:bg-white/10"
-            )}
-          >
-            <motion.span
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="flex items-center justify-center"
-            >
-              <ChevronRight size={18} />
-            </motion.span>
-          </button>
         </div>
 
-        {/* Divider */}
-        <div className="mx-4 h-px bg-white/5 shrink-0" />
-
         {/* Nav items */}
-        <nav className="flex-1 flex flex-col gap-1 px-3 pt-4">
+        <nav className="flex-1 flex flex-col gap-1 px-3 pt-6">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -88,18 +75,24 @@ export function StudentNav() {
                 href={item.href}
                 title={!expanded ? item.name : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl transition-colors duration-200 group relative",
-                  expanded ? "px-4 py-3" : "px-0 py-3 justify-center",
-                  isActive
-                    ? "bg-white/14 text-white shadow-lg shadow-slate-950/20 ring-1 ring-white/10"
-                    : "text-slate-300 hover:text-white hover:bg-white/8"
+                  "flex items-center gap-4 rounded-lg transition-all duration-200 group relative",
+                  expanded ? "px-4 py-4" : "px-0 py-4 justify-center",
+                  isActive ? "bg-brand-blue/10" : "hover:bg-brand-blue/5"
                 )}
               >
-                <item.icon
-                  size={20}
-                  strokeWidth={isActive ? 2.5 : 2}
-                  className={cn("shrink-0", isActive ? "text-brand-blue" : "text-slate-300 group-hover:text-brand-blue")}
+                {/* Icon — PNG with colour filter, consistent w-7 h-7 */}
+                <img
+                  src={item.img}
+                  alt={item.name}
+                  className={cn(
+                    "w-6 h-6 min-w-[24px] min-h-[24px] object-contain shrink-0 transition-all duration-200",
+                    "iconClass" in item && item.iconClass,
+                    isActive
+                      ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                      : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                  )}
                 />
+
                 <AnimatePresence initial={false}>
                   {expanded && (
                     <motion.span
@@ -108,7 +101,10 @@ export function StudentNav() {
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className="font-bold tracking-tight text-sm whitespace-nowrap overflow-hidden"
+                      className={cn(
+                        "font-bold tracking-tight text-base whitespace-nowrap overflow-hidden transition-colors duration-200",
+                        isActive ? "text-brand-blue" : "text-slate-500 group-hover:text-brand-blue"
+                      )}
                     >
                       {item.name}
                     </motion.span>
@@ -118,19 +114,10 @@ export function StudentNav() {
             );
           })}
         </nav>
-
-        {/* Collapsed hint — subtle dots to signal expandability */}
-        {!expanded && (
-          <div className="pb-6 flex flex-col items-center gap-1">
-            <span className="w-1 h-1 rounded-full bg-white/20 block" />
-            <span className="w-1 h-1 rounded-full bg-white/20 block" />
-            <span className="w-1 h-1 rounded-full bg-white/20 block" />
-          </div>
-        )}
       </motion.aside>
 
       {/* Mobile Bottom Bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 px-4 py-3 z-50 flex justify-around items-center">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-[#E8E4DE] px-4 py-3 z-50 flex justify-around items-center" style={{ backgroundColor: "#FAF9F7" }}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -138,12 +125,29 @@ export function StudentNav() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 transition-all duration-300",
-                isActive ? "text-brand-blue scale-110" : "text-slate-400"
+                "flex flex-col items-center gap-1 transition-all duration-300 group",
+                isActive ? "scale-110" : ""
               )}
             >
-              <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-black uppercase tracking-widest">{item.name}</span>
+              <img
+                src={item.img}
+                alt={item.name}
+                className={cn(
+                  "w-5 h-5 min-w-[20px] min-h-[20px] object-contain transition-all duration-200",
+                  "iconClass" in item && item.iconClass,
+                  isActive
+                    ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                    : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                )}
+              />
+              <span
+                className={cn(
+                  "text-[10px] font-bold tracking-tight transition-colors duration-200",
+                  isActive ? "text-brand-blue" : "text-slate-500 group-hover:text-brand-blue"
+                )}
+              >
+                {item.name}
+              </span>
             </Link>
           );
         })}

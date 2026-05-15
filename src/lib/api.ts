@@ -349,6 +349,8 @@ function deriveStatusFromReviewApplication(data: ReviewApplicationResponse): App
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 8000;
+
 async function request<T>(
   path: string,
   options: RequestInit = {}
@@ -362,7 +364,35 @@ async function request<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_REQUEST_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      (error.name === "AbortError" || error.message.includes("aborted"))
+    ) {
+      throw new Error(
+        "Request timed out. Make sure the backend server is running and try again."
+      );
+    }
+    // Always throw a proper Error — never propagate undefined or non-Error values
+    if (error instanceof Error) throw error;
+    throw new Error(
+      typeof error === "string" && error.length > 0
+        ? error
+        : "Network request failed. Please check your connection."
+    );
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -385,7 +415,9 @@ async function request<T>(
 
   if (res.status === 204) return undefined as T;
 
-  return res.json() as Promise<T>;
+  return res.json().catch(() => {
+    throw new Error("Server returned an invalid response. Please try again.");
+  }) as Promise<T>;
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -471,7 +503,11 @@ export async function getApplicationStatus(): Promise<ApplicationStatus> {
       const reviewData = await request<ReviewApplicationResponse>("/review/my-application");
       return deriveStatusFromReviewApplication(reviewData);
     } catch {
-      throw statusError;
+      const message =
+        statusError instanceof Error
+          ? statusError.message
+          : "Failed to load application status.";
+      throw new Error(message);
     }
   }
 }
@@ -548,6 +584,15 @@ export async function getApprovedAdminApplicants(): Promise<AdminApplicantsBySta
 
 export async function getFlaggedAdminApplicants(): Promise<AdminApplicantsByStatusResponse> {
   return request<AdminApplicantsByStatusResponse>("/admin/applications/flagged");
+}
+
+export interface AdminApplicantsResponse {
+  count: number;
+  applicants: PriorityStudent[];
+}
+
+export async function getAllAdminApplicants(): Promise<AdminApplicantsResponse> {
+  return request<AdminApplicantsResponse>("/admin/applications");
 }
 
 export async function getSponsors(): Promise<SponsorListItem[]> {

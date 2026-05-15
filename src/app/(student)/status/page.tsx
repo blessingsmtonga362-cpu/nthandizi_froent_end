@@ -2,165 +2,198 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  CheckCircle2, 
-  Search, 
-  FileCheck,
-  ShieldCheck,
-  Clock
-} from "lucide-react";
+import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getApplicationStatus, type ApplicationStatus } from "@/lib/api";
+import { useApplicationProgress } from "@/hooks/use-application-progress";
 
 type StatusKey = "draft" | "submitted" | "reviewing" | "approved" | "rejected";
 
-const statusConfig: Record<StatusKey, { label: string; description: string; icon: React.ElementType }> = {
-  draft:     { label: "Not Submitted",  description: "You have not submitted your application yet.",                                icon: FileCheck  },
-  submitted: { label: "Submitted",      description: "Your application has been received and is queued for review.",               icon: FileCheck  },
-  reviewing: { label: "Under Review",   description: "Your profiling application was successfully submitted.\nThe committee is now assessing your information.", icon: Search },
-  approved:  { label: "Approved",       description: "Congratulations! Your application has been approved.",                       icon: CheckCircle2 },
-  rejected:  { label: "Not Approved",   description: "Your application was not approved this cycle. Contact the office for details.", icon: ShieldCheck },
+const statusConfig: Record<StatusKey, { label: string; description: string }> = {
+  draft: { label: "Not submitted", description: "You have not submitted your application yet." },
+  submitted: { label: "Submitted", description: "Your application has been received and is queued for review." },
+  reviewing: { label: "Under review", description: "Your profiling application was successfully submitted.\nThe committee is now assessing your information." },
+  approved: { label: "Approved", description: "You have been approved for support. Congratulations!" },
+  rejected: { label: "Not approved", description: "Your application was not approved this cycle. Contact the office for details." },
 };
 
-const steps = [
-  { label: "Submitted", icon: FileCheck },
-  { label: "Reviewing", icon: Search },
-  { label: "Outcome",   icon: CheckCircle2 },
+const STEPS = [
+  { label: "Submitted", img: "/submitted.png" },
+  { label: "Review", img: "/review.png" },
+  { label: "Outcome", img: "/outcome.png" },
 ];
 
-function getStepState(status: StatusKey, stepIndex: number) {
-  const order: StatusKey[] = ["draft", "submitted", "reviewing", "approved"];
-  const currentIndex = order.indexOf(status);
-  if (stepIndex === 0) return currentIndex >= 1 ? "past" : currentIndex === 0 ? "current" : "future";
-  if (stepIndex === 1) return currentIndex >= 2 ? "past" : currentIndex === 1 ? "current" : "future";
-  if (stepIndex === 2) return currentIndex >= 3 ? "past" : currentIndex === 2 ? "current" : "future";
-  return "future";
+function getStepState(
+  status: StatusKey,
+  stepIndex: number,
+  hasStartedApplying: boolean,
+): "done" | "active" | "pending" {
+  if (status === "approved") return "done";
+  if (status === "rejected") {
+    if (stepIndex === 2) return "active";
+    if (stepIndex < 2) return "done";
+    return "pending";
+  }
+  if (status === "reviewing") {
+    if (stepIndex <= 1) return "done";
+    if (stepIndex === 2) return "active";
+    return "pending";
+  }
+  if (status === "submitted") {
+    if (stepIndex === 0) return "done";
+    if (stepIndex === 1) return "active";
+    return "pending";
+  }
+  if (status === "draft" && hasStartedApplying) {
+    if (stepIndex === 0) return "active";
+    return "pending";
+  }
+  return "pending";
 }
 
 export default function ApplicationStatus() {
   const [appStatus, setAppStatus] = useState<ApplicationStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const { progress } = useApplicationProgress();
 
   useEffect(() => {
     getApplicationStatus()
       .then(setAppStatus)
-      .catch(() => setAppStatus({ status: "draft", completedSteps: 0, totalSteps: 4, lastSaved: null, submittedAt: null }))
+      .catch(() =>
+        setAppStatus({ status: "draft", completedSteps: 0, totalSteps: 4, lastSaved: null, submittedAt: null })
+      )
       .finally(() => setLoading(false));
   }, []);
 
   const currentStatus: StatusKey = (appStatus?.status as StatusKey) ?? "draft";
   const config = statusConfig[currentStatus];
-  const IconComponent = config.icon;
+  const locallyStarted =
+    typeof window !== "undefined" && localStorage.getItem("application_started") === "true";
+  const hasStartedApplying = progress.hasAnyInput || locallyStarted;
 
   return (
-    <div className="max-w-4xl mx-auto pt-10 pb-20">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+    <div className="max-w-3xl mx-auto pt-10 pb-20">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center"
+        className="space-y-8"
       >
-        {/* Hero Card */}
-        <div className="relative rounded-[48px] p-10 md:p-20 text-white overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,23,42,0.2)] mb-12 bg-brand-slate">
-          
-          {/* Animated Gradient Layer */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_-20%,#2563EB_0%,rgba(37,99,235,0)_50%),radial-gradient(circle_at_70%_120%,#1E40AF_0%,rgba(30,64,175,0)_50%)] opacity-40" />
-          
-          {/* Glass Shine Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-
-          {/* Subtle Decorative Icon */}
-          <div className="absolute -bottom-10 -right-10 p-10 opacity-10 rotate-12">
-            <ShieldCheck size={280} />
-          </div>
-
-          <div className="relative z-10 flex flex-col items-center">
+        <motion.div
+          whileHover={{
+            scale: 1.015,
+            boxShadow: "0 16px 48px -8px rgba(15,23,42,0.12)",
+          }}
+          transition={{ duration: 0.2 }}
+          className="relative p-10 md:p-16 overflow-hidden border border-slate-200 bg-transparent"
+        >
+          <div className="flex flex-col items-center text-center">
             {loading ? (
-              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mb-8" />
+              <div className="w-8 h-8 border-2 border-slate-200 border-t-brand-blue animate-spin mb-8" />
             ) : (
-              <motion.div 
-                animate={{ 
-                  boxShadow: ["0 0 0 0px rgba(255,255,255,0)", "0 0 0 20px rgba(255,255,255,0.05)", "0 0 0 0px rgba(255,255,255,0)"] 
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl"
-              >
-                <IconComponent className="text-brand-blue" size={40} strokeWidth={2.5} />
-              </motion.div>
+              <img
+                src={
+                  currentStatus === "draft"
+                    ? "/submitted.png"
+                    : currentStatus === "submitted"
+                      ? "/submitted.png"
+                      : currentStatus === "reviewing"
+                        ? "/review.png"
+                        : "/outcome.png"
+                }
+                alt={config.label}
+                className="w-12 h-12 object-contain mb-8"
+              />
             )}
 
-            <span className="text-blue-400 font-black uppercase tracking-[0.5em] text-[10px] mb-4 drop-shadow-sm">
-              Current Application State
-            </span>
-            
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
+            <span className="text-slate-400 font-medium text-xs mb-3">Current application state</span>
+
+            <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4 text-brand-slate">
               {loading ? "Loading..." : config.label}
             </h1>
-            
-            <p className="text-blue-100/60 font-medium max-w-md mx-auto leading-relaxed text-sm md:text-base whitespace-pre-line">
+
+            <p className="text-slate-500 font-normal max-w-md mx-auto leading-relaxed text-sm whitespace-pre-line">
               {loading ? "" : config.description}
             </p>
           </div>
+        </motion.div>
+
+        <div className="flex justify-between items-start relative px-4">
+          <div
+            className="absolute top-6 left-4 right-4 h-px -z-10 bg-slate-200"
+          />
+
+          {STEPS.map((step, i) => {
+            const state = getStepState(currentStatus, i, hasStartedApplying);
+            const isDone = state === "done";
+            const isActive = state === "active";
+
+            return (
+              <div key={step.label} className="flex flex-col items-center gap-3 flex-1">
+                <img
+                  src={step.img}
+                  alt={step.label}
+                  className={cn(
+                    "w-10 h-10 object-contain transition-all duration-300",
+                    isDone && "opacity-100",
+                    isActive && "opacity-100",
+                    !isDone && !isActive && "opacity-35",
+                  )}
+                  style={
+                    isDone
+                      ? { filter: "invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg) brightness(95%) contrast(86%)" }
+                      : isActive
+                        ? { filter: "invert(60%) sepia(98%) saturate(749%) hue-rotate(360deg) brightness(101%) contrast(101%)" }
+                        : undefined
+                  }
+                />
+
+                <span
+                  className={cn(
+                    "text-xs font-medium text-center",
+                    isDone && "text-emerald-600",
+                    isActive && "text-amber-600",
+                    !isDone && !isActive && "text-slate-400",
+                  )}
+                >
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Progress Steps */}
-        <div className="max-w-2xl mx-auto px-6">
-          <div className="flex justify-between relative">
-            <div className="absolute top-6 left-0 w-full h-1 bg-slate-100 -z-10 rounded-full" />
-            
-            {steps.map((step, i) => {
-              const state = getStepState(currentStatus, i);
-              const isPast = state === "past";
-              const isCurrent = state === "current";
-              
-              return (
-                <div key={i} className="flex flex-col items-center gap-4">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-4 border-white",
-                    isPast    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-100" : 
-                    isCurrent ? "bg-brand-blue text-white shadow-xl shadow-brand-blue/30" : 
-                    "bg-slate-100 text-slate-300"
-                  )}>
-                    <step.icon size={20} strokeWidth={isCurrent ? 3 : 2} />
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-black uppercase tracking-widest",
-                    isCurrent ? "text-brand-blue" : "text-slate-300"
-                  )}>
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bottom Action */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-20 flex flex-col items-center gap-6"
+          transition={{ delay: 0.4 }}
+          className="flex flex-col items-center gap-5 pt-4"
         >
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-            <Clock size={14} className="text-brand-blue" />
-            {currentStatus === "draft" ? "Complete your application to track progress" : "Check back later for updates"}
-          </p>
-          
-          {currentStatus === "draft" ? (
-            <Button 
-              className="h-14 px-10 rounded-2xl bg-brand-blue hover:bg-brand-blueDark text-white font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-brand-blue/20" 
+          {currentStatus !== "draft" && (
+            <p className="text-slate-400 text-xs font-medium flex items-center gap-2">
+              <Clock size={13} className="text-brand-blue" />
+              Check back later for updates
+            </p>
+          )}
+
+          {currentStatus === "draft" && !hasStartedApplying && (
+            <Button
+              className="h-14 px-10 bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs transition-all"
               asChild
             >
-              <Link href="/apply">Start Application</Link>
+              <Link href="/apply">Start application</Link>
             </Button>
-          ) : (
-            <Button 
-              className="h-14 px-10 rounded-2xl bg-slate-50 hover:bg-slate-100 text-brand-slate font-black uppercase tracking-widest text-xs transition-all border border-slate-100" 
+          )}
+
+          {(hasStartedApplying || currentStatus !== "draft") && (
+            <Button
+              className="h-14 px-10 text-brand-slate font-bold text-xs transition-all border border-slate-200 hover:border-brand-blue hover:text-brand-blue bg-transparent"
               asChild
             >
-              <Link href="/dashboard">Return to Dashboard</Link>
+              <Link href={currentStatus === "draft" ? "/apply" : "/dashboard"}>
+                {currentStatus === "draft" ? "Continue application" : "Return to dashboard"}
+              </Link>
             </Button>
           )}
         </motion.div>
