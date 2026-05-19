@@ -11,7 +11,7 @@ import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { submitApplication, getApplicationStatus } from "@/lib/api";
+import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
 import Link from "next/link";
 
@@ -141,7 +141,8 @@ export default function ApplicationWizard() {
       const response = await submitApplication(payload);
       reset();
       await clearOfflinePersistence();
-      localStorage.removeItem("application_started");
+      const userId = getStoredUser()?.id ?? "anonymous";
+      localStorage.removeItem(`application_started_${userId}`);
       const params = new URLSearchParams({
         submittedAt: response.submittedAt,
         status: response.applicationStatus,
@@ -200,7 +201,8 @@ export default function ApplicationWizard() {
           </div>
           <button
             onClick={() => {
-              localStorage.setItem("application_started", "true");
+              const userId = getStoredUser()?.id ?? "anonymous";
+              localStorage.setItem(`application_started_${userId}`, "true");
               setStarted(true);
             }}
             className="h-14 px-12 bg-brand-slate text-white font-bold text-sm tracking-wide hover:bg-brand-blue hover:scale-[1.02] transition-all duration-200"

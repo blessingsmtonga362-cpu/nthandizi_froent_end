@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Loader2, ShieldCheck, X } from "lucide-react";
+import { ArrowUpRight, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   getAdminApplicantDetails,
@@ -198,15 +198,10 @@ export default function ApplicantsPage() {
               <option value="all">All ranks</option>
               {rankedApplicants.map((row) => (
                 <option key={row.id} value={String(row.rank)}>
-                  Rank #{String(row.rank).padStart(2, "0")}
+                  Rank {row.rank}
                 </option>
               ))}
             </select>
-
-            <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2">
-              <ShieldCheck size={12} className="text-brand-blue" />
-              <span className="text-xs font-medium text-slate-500">Backend synced</span>
-            </div>
           </div>
         </div>
 
@@ -247,7 +242,7 @@ export default function ApplicantsPage() {
                 filteredApplicants.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-bold text-brand-blue text-sm">
-                      #{String(row.rank).padStart(2, "0")}
+                      {row.rank}
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-bold text-brand-slate">{row.name}</p>
@@ -261,15 +256,15 @@ export default function ApplicantsPage() {
                     <td className="px-6 py-4 text-center">
                       <span
                         className={cn(
-                          "inline-flex border px-2.5 py-1 text-[11px] font-bold",
+                          "text-[11px] font-bold",
                           row.score > 80
-                            ? "bg-red-50 text-red-600 border-red-200"
+                            ? "text-emerald-600"
                             : row.score > 60
-                              ? "bg-amber-50 text-amber-600 border-amber-200"
-                              : "bg-emerald-50 text-emerald-600 border-emerald-200",
+                              ? "text-amber-600"
+                              : "text-red-600",
                         )}
                       >
-                        {row.score}/100
+                        {row.score}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">

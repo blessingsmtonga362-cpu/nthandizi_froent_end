@@ -6,7 +6,7 @@ import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getApplicationStatus, type ApplicationStatus } from "@/lib/api";
+import { getApplicationStatus, getStoredUser, type ApplicationStatus } from "@/lib/api";
 import { useApplicationProgress } from "@/hooks/use-application-progress";
 
 type StatusKey = "draft" | "submitted" | "reviewing" | "approved" | "rejected";
@@ -57,6 +57,7 @@ export default function ApplicationStatus() {
   const [appStatus, setAppStatus] = useState<ApplicationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const { progress } = useApplicationProgress();
+  const [hovering, setHovering] = useState(false);
 
   useEffect(() => {
     getApplicationStatus()
@@ -70,7 +71,7 @@ export default function ApplicationStatus() {
   const currentStatus: StatusKey = (appStatus?.status as StatusKey) ?? "draft";
   const config = statusConfig[currentStatus];
   const locallyStarted =
-    typeof window !== "undefined" && localStorage.getItem("application_started") === "true";
+    typeof window !== "undefined" && localStorage.getItem(`application_started_${getStoredUser()?.id ?? "anonymous"}`) === "true";
   const hasStartedApplying = progress.hasAnyInput || locallyStarted;
 
   return (
@@ -84,11 +85,19 @@ export default function ApplicationStatus() {
           whileHover={{
             scale: 1.015,
             boxShadow: "0 16px 48px -8px rgba(15,23,42,0.12)",
+            borderColor: "rgb(59 130 246)",
           }}
+          onHoverStart={() => setHovering(true)}
+          onHoverEnd={() => setHovering(false)}
           transition={{ duration: 0.2 }}
-          className="relative p-10 md:p-16 overflow-hidden border border-slate-200 bg-transparent"
+          className={"relative p-10 md:p-16 overflow-hidden border border-slate-200 bg-brand-blue/5"}
+          style={{ backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" }}
         >
-          <div className="flex flex-col items-center text-center">
+          <motion.div
+            className="flex flex-col items-center text-center"
+            animate={hovering ? { y: -6, scale: 1.01 } : { y: 0, scale: 1 }}
+            transition={{ duration: 0.25 }}
+          >
             {loading ? (
               <div className="w-8 h-8 border-2 border-slate-200 border-t-brand-blue animate-spin mb-8" />
             ) : (
@@ -116,7 +125,7 @@ export default function ApplicationStatus() {
             <p className="text-slate-500 font-normal max-w-md mx-auto leading-relaxed text-sm whitespace-pre-line">
               {loading ? "" : config.description}
             </p>
-          </div>
+          </motion.div>
         </motion.div>
 
         <div className="flex justify-between items-start relative px-4">

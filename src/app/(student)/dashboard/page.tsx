@@ -25,6 +25,7 @@ function sectionChipClass(state: SectionState) {
 export default function StudentDashboard() {
   const [status, setStatus] = useState<ApplicationStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tileHovering, setTileHovering] = useState(false);
   const user = getStoredUser();
   const router = useRouter();
   const { progress, refreshDraft } = useApplicationProgress();
@@ -55,7 +56,7 @@ export default function StudentDashboard() {
   const firstName = user?.firstName ?? "Student";
   const progressPct = loading ? 0 : progress.percent;
   const isSubmitted = status?.status === "submitted" || status?.status === "reviewing" || status?.status === "approved";
-  const locallyStarted = typeof window !== "undefined" && localStorage.getItem("application_started") === "true";
+  const locallyStarted = typeof window !== "undefined" && localStorage.getItem(`application_started_${user?.id ?? "anonymous"}`) === "true";
   const hasStarted = progress.hasAnyInput || isSubmitted || locallyStarted;
   const trackerSpan = hasStarted ? "lg:col-span-2" : "lg:col-span-1";
 
@@ -82,19 +83,28 @@ export default function StudentDashboard() {
       </header>
 
       <div className="grid lg:grid-cols-3 gap-6 items-start">
-        <div
-          onClick={() => {
-            if (!isSubmitted) router.push("/apply");
+
+      <motion.div
+          onClick={() => { if (!isSubmitted) router.push("/apply"); }}
+          onHoverStart={() => setTileHovering(true)}
+          onHoverEnd={() => setTileHovering(false)}
+          initial={{ borderColor: "rgb(226 232 240)" }}
+          whileHover={{
+            scale: 1.015,
+            boxShadow: "0 16px 48px -8px rgba(15,23,42,0.22)",
+            borderColor: "rgb(59 130 246)",
           }}
+          transition={{ duration: 0.2 }}
           className={cn(
-            "border p-8 group",
+            "border p-8 group bg-brand-blue/5",
             trackerSpan,
-            isSubmitted
-              ? "border-slate-200 cursor-default hover:shadow-[0_16px_48px_-8px_rgba(15,23,42,0.18)]"
-              : "border-slate-200 hover:border-brand-blue hover:shadow-[0_16px_48px_-8px_rgba(15,23,42,0.22)] cursor-pointer hover:scale-[1.015]"
+            isSubmitted ? "cursor-default" : "cursor-pointer"
           )}
-          style={{ transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s" }}
         >
+          <motion.div
+            animate={tileHovering ? { y: -4, scale: 1.01 } : { y: 0, scale: 1 }}
+            transition={{ duration: 0.25 }}
+          >
           {!hasStarted && !loading && (
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-display font-bold text-brand-slate">
@@ -182,7 +192,8 @@ export default function StudentDashboard() {
               </p>
             </div>
           )}
-        </div>
+          </motion.div>
+        </motion.div>
 
         <div
           className="lg:col-span-1 border border-slate-200 hover:border-brand-blue p-6 hover:shadow-[0_16px_48px_-8px_rgba(15,23,42,0.22)] hover:scale-[1.015]"

@@ -4,9 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { openDB } from "idb";
 import { calculateApplicationProgress, type ApplicationProgress } from "@/lib/application-progress";
 import { useApplicationStore, type ApplicationData } from "@/lib/store/use-application-store";
+import { getStoredUser } from "@/lib/api";
 
 const DB_NAME = "unima_support_db";
 const STORE_NAME = "application_draft";
+
+function getDraftKey(): string {
+  const user = getStoredUser();
+  return user?.id ? `draft_${user.id}` : "draft_anonymous";
+}
 
 type DraftSnapshot = Partial<ApplicationData> & {
   personal?: ApplicationData["personal"];
@@ -42,7 +48,7 @@ function mergeDraftIntoData(base: ApplicationData, draft: DraftSnapshot): Applic
 async function loadDraftSnapshot(): Promise<DraftSnapshot | null> {
   try {
     const db = await openDB(DB_NAME, 2);
-    const saved = await db.get(STORE_NAME, "current_draft");
+    const saved = await db.get(STORE_NAME, getDraftKey());
     return saved ?? null;
   } catch {
     return null;
