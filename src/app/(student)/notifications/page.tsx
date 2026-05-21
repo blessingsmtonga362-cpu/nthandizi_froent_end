@@ -59,7 +59,7 @@ export default function NotificationsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">Notifications</h1>
-          <p className="text-slate-500 font-medium mt-1">Stay updated on your profiling progress and campus news.</p>
+          <p className="text-slate-500 font-normal mt-1">Stay updated on your profiling progress and campus news.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -134,7 +134,7 @@ export default function NotificationsPage() {
                           {n.time}
                         </div>
                       </div>
-                      <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-2xl">
+                      <p className="text-slate-500 text-sm font-normal leading-relaxed max-w-2xl">
                         {n.message}
                       </p>
 
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
                 <Bell size={40} />
               </div>
               <h3 className="text-xl font-black text-brand-slate tracking-tight">All caught up</h3>
-              <p className="text-slate-400 text-sm font-medium mt-2">Check back later for new updates.</p>
+              <p className="text-slate-400 text-sm font-normal mt-2">Check back later for new updates.</p>
             </div>
           )}
         </div>

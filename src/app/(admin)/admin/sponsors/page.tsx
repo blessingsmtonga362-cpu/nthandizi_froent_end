@@ -98,7 +98,7 @@ export default function SponsorsPage() {
   };
 
   return (
-    <div className="relative h-full">
+    <div className="h-full">
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Partner Sponsors</h1>
@@ -194,15 +194,15 @@ export default function SponsorsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveSponsor(null)}
-              className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40"
+              className="absolute inset-x-0 top-16 bottom-0 bg-slate-900/20 backdrop-blur-sm z-40"
             />
 
             <motion.div
               initial={{ x: "100%" }}
-              animate={{ x: 0, width: 640 }}
+              animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 h-screen bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] z-50 flex flex-col"
+              className="absolute right-0 top-16 bottom-0 z-50 flex flex-col w-full max-w-2xl bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)]"
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div className="flex items-center gap-4">
@@ -319,7 +319,7 @@ export default function SponsorsPage() {
               className="bg-white w-full max-w-md p-10 relative z-10 shadow-2xl"
             >
               <h2 className="text-2xl font-display font-bold text-brand-slate tracking-tight mb-2">New Sponsor</h2>
-              <p className="text-slate-500 text-sm mb-8 font-medium">Create a sponsor and allocate approved applicants from the backend.</p>
+              <p className="text-slate-500 text-sm mb-8 font-normal">Create a sponsor and allocate approved applicants from the backend.</p>
 
               <div className="space-y-6">
                 <div className="space-y-2">

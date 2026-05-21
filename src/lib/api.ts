@@ -144,6 +144,7 @@ export interface AdminApplicantListItem extends AdminApplicantProfile {
   program: string;
   department: string | null;
   yearOfStudy: number | null;
+  score?: number | null;
 }
 
 export interface AdminApplicantsByStatusResponse {

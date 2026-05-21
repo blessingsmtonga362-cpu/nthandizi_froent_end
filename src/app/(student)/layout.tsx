@@ -60,7 +60,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto shrink-0 object-contain" />
                 <div className="h-6 w-px shrink-0 bg-slate-200" />
-                <span className="font-bold text-brand-slate text-sm tracking-tight truncate">
+                <span className="font-display font-normal text-slate-500 text-sm tracking-tight truncate">
                   University of Malawi
                 </span>
               </div>
@@ -86,20 +86,20 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
               {open && (
                 <div
-                  className="absolute right-0 mt-2 w-56 rounded-none shadow-xl shadow-stone-200/60 border border-[#E8E4DE] overflow-hidden z-50"
+                  className="absolute right-0 mt-2 w-56 rounded-none shadow-xl shadow-stone-200/60 border border-[#E8E4DE] overflow-hidden z-50 font-sans"
                   style={{ backgroundColor: "#FAF9F7" }}
                 >
                   <div className="px-4 py-3 border-b border-slate-100">
-                    <p className="text-sm font-bold text-brand-slate leading-none truncate">{displayName || "Student"}</p>
+                    <p className="text-sm font-normal text-brand-slate leading-none truncate">{displayName || "Student"}</p>
                     {storedUser?.registrationNumber && (
-                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">
+                      <p className="text-[10px] text-slate-400 font-normal uppercase tracking-wider mt-1">
                         {storedUser.registrationNumber}
                       </p>
                     )}
                   </div>
                   <button
                     onClick={handleChangePassword}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-brand-slate hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-normal text-brand-slate hover:bg-slate-50 transition-colors"
                   >
                     <KeyRound size={16} className="text-brand-blue" />
                     Change Password
@@ -107,7 +107,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                   <div className="h-px bg-slate-100" />
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-normal text-red-500 hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={16} />
                     Sign Out

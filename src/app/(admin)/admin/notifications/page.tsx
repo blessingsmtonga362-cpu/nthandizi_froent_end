@@ -59,20 +59,20 @@ export default function AdminNotificationsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">Notifications</h1>
-          <p className="text-slate-500 font-medium mt-1">System alerts and administrative updates.</p>
+          <p className="text-slate-500 font-normal mt-1">System alerts and administrative updates.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             onClick={handleMarkAllRead}
-            className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue"
+            className="text-[10px] font-normal uppercase tracking-widest text-slate-400 hover:text-brand-blue"
           >
             <Check className="mr-2 w-4 h-4" /> Mark all as read
           </Button>
           <Button
             variant="ghost"
             onClick={handleClearAll}
-            className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-500 hover:bg-red-50"
+            className="text-[10px] font-normal uppercase tracking-widest text-red-400 hover:text-red-500 hover:bg-red-50"
           >
             <Trash2 className="mr-2 w-4 h-4" /> Clear all
           </Button>
@@ -134,7 +134,7 @@ export default function AdminNotificationsPage() {
                           {n.time}
                         </div>
                       </div>
-                      <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-2xl">
+                      <p className="text-slate-500 text-sm font-normal leading-relaxed max-w-2xl">
                         {n.message}
                       </p>
 
@@ -161,7 +161,7 @@ export default function AdminNotificationsPage() {
                 <Bell size={40} />
               </div>
               <h3 className="text-xl font-display font-bold text-brand-slate tracking-tight">All caught up</h3>
-              <p className="text-slate-400 text-sm font-medium mt-2">Check back later for new updates.</p>
+              <p className="text-slate-400 text-sm font-normal mt-2">Check back later for new updates.</p>
             </div>
           )}
         </div>

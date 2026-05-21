@@ -137,7 +137,7 @@ export default function RegisterPage() {
           <h1 className="text-4xl font-display font-bold text-brand-slate tracking-tight mb-1">
             Sign Up
           </h1>
-          <p className="text-slate-500 font-medium mb-10">
+          <p className="text-slate-500 font-normal mb-10">
             Join the Mthandizi student profiling platform.
           </p>
 

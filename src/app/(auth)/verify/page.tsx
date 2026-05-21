@@ -128,7 +128,7 @@ export default function VerifyPage() {
                   <CheckCircle2 size={40} />
                 </div>
                 <h2 className="text-3xl font-display font-bold text-brand-slate mb-3 tracking-tight">Email Verified!</h2>
-                <p className="text-slate-500 text-sm font-medium">
+                <p className="text-slate-500 text-sm font-normal">
                   Your account is confirmed. Redirecting you to sign in...
                 </p>
                 <div className="mt-6 w-8 h-8 border-2 border-brand-blue/20 border-t-brand-blue rounded-full animate-spin mx-auto" />
@@ -141,7 +141,7 @@ export default function VerifyPage() {
                 </div>
 
                 <h2 className="text-3xl font-display font-bold text-brand-slate mb-3 tracking-tight">Verify Your Email</h2>
-                <p className="text-slate-500 text-sm mb-10 leading-relaxed font-medium">
+                <p className="text-slate-500 text-sm mb-10 leading-relaxed font-normal">
                   We&apos;ve sent a 6-digit code to <br />
                   <span className="font-bold text-brand-blue">{email}</span>
                 </p>
@@ -196,7 +196,7 @@ export default function VerifyPage() {
                 </form>
 
                 <div className="text-sm mt-8">
-                  <p className="text-slate-500 font-medium">
+                  <p className="text-slate-500 font-normal">
                     Didn&apos;t receive the code?{" "}
                     {!canResend ? (
                       <span className="text-brand-blue font-black">Resend in {timer}s</span>
