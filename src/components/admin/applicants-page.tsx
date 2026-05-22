@@ -14,6 +14,7 @@ import {
   type AdminApplicantStatus,
   type PriorityStudent,
 } from "@/lib/api";
+import { toastSuccess, toastError } from "@/lib/toast";
 
 function formatValue(value: string | number | null | undefined) {
   if (value === null || value === undefined) return "Not provided";
@@ -139,6 +140,10 @@ export default function ApplicantsPage() {
     if (!selectedApplicantId) return;
 
     if (reviewStatus === "flagged" && reviewComments.trim().length === 0) {
+      toastError({
+        title: "Missing Comment",
+        description: "Please provide a comment when flagging an applicant.",
+      });
       return;
     }
 
@@ -162,8 +167,27 @@ export default function ApplicantsPage() {
             }
           : current,
       );
-    } catch {
-      // Save failed silently — panel stays open so user can retry
+
+      // Show success toast
+      const statusText = reviewStatus === "approved" ? "Approved" : "Flagged";
+      const studentName = details?.applicant.firstName || "Applicant";
+      toastSuccess({
+        title: `${studentName} ${statusText}`,
+        description:
+          reviewStatus === "approved"
+            ? "Student has been approved successfully."
+            : "Student has been flagged for review.",
+      });
+
+      // Close panel after brief delay to show the toast
+      setTimeout(() => {
+        closeApplicant();
+      }, 500);
+    } catch (err) {
+      toastError({
+        title: "Save Failed",
+        description: err instanceof Error ? err.message : "Failed to save review. Please try again.",
+      });
     } finally {
       setReviewSubmitting(false);
     }

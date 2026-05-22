@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
+import { toastSuccess, toastError } from "@/lib/toast";
 import Link from "next/link";
 
 const STEPS = ["Personal", "Family", "Education", "Review"];
@@ -148,13 +149,25 @@ export default function ApplicationWizard() {
       await clearOfflinePersistence();
       const userId = getStoredUser()?.id ?? "anonymous";
       localStorage.removeItem(`application_started_${userId}`);
+      
+      // Show success toast
+      toastSuccess({
+        title: "Application Submitted",
+        description: "Your application has been received and is now in the review queue.",
+      });
+      
       const params = new URLSearchParams({
         submittedAt: response.submittedAt,
         status: response.applicationStatus,
       });
       router.push(`/apply/success?${params.toString()}`);
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : "Submission failed. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Submission failed. Please try again.";
+      setSubmitError(errorMessage);
+      toastError({
+        title: "Submission Failed",
+        description: errorMessage,
+      });
     } finally {
       setSubmitting(false);
     }

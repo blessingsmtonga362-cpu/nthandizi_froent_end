@@ -39,8 +39,8 @@ function DetailGrid({ fields }: { fields: Array<{ label: string; value: string }
     <div className="grid gap-4 md:grid-cols-2">
       {fields.map((field) => (
         <div key={field.label} className="space-y-1">
-          <p className="text-xs font-normal text-slate-400">{field.label}</p>
-          <p className="text-sm font-normal text-slate-600 break-words">{field.value}</p>
+          <p className="text-xs font-medium text-slate-600">{field.label}</p>
+          <p className="text-sm font-normal text-slate-500 break-words">{field.value}</p>
         </div>
       ))}
     </div>
