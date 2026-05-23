@@ -1,3 +1,4 @@
+// app/(auth)/register/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -80,7 +81,8 @@ export default function RegisterPage() {
         password: formData.password,
         university: "unima",
       });
-      router.push("/login");
+      // ✅ FIX: Redirect to verify (not verify-otp) with email parameter
+      router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -307,3 +309,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+

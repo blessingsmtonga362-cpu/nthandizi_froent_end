@@ -167,8 +167,8 @@ export default function Step2() {
                 <label className={labelClass}>Relationship</label>
                 <select className={selectClass} value={f.studentRelationship} onChange={(e) => updateFamily({ studentRelationship: e.target.value })}>
                   <option value="">Select</option>
-                  <option value="son">Son</option>
-                  <option value="daughter">Daughter</option>
+                  <option value="son">Father</option>
+                  <option value="daughter">Mother</option>
                 </select>
               </div>
               <div className="space-y-2"><label className={labelClass}>T/A</label>
@@ -198,7 +198,7 @@ export default function Step2() {
               <div className="space-y-2"><label className={labelClass}>National ID</label><Input className={inputClass} value={f.guardianNationalId} onChange={(e) => updateFamily({ guardianNationalId: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Phone Number</label><Input className={inputClass} value={f.guardianPhone} onChange={(e) => updateFamily({ guardianPhone: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>Monthly Income</label><Input type="number" min="0" className={inputClass} value={f.guardianMonthlyIncome} onChange={(e) => updateFamily({ guardianMonthlyIncome: e.target.value })} /></div>
-              <div className="space-y-2"><label className={labelClass}>Relationship</label><Input className={inputClass} placeholder="e.g. Uncle" value={f.relationshipToGuardian} onChange={(e) => updateFamily({ relationshipToGuardian: e.target.value })} /></div>
+              <div className="space-y-2"><label className={labelClass}>Relationship</label><Input className={inputClass} placeholder="e.g uncle" value={f.relationshipToGuardian} onChange={(e) => updateFamily({ relationshipToGuardian: e.target.value })} /></div>
               <div className="space-y-2"><label className={labelClass}>T/A</label>
                 <select className={selectClass} value={f.guardianTa} onChange={(e) => updateFamily({ guardianTa: e.target.value })}>
                   <option value="">Select T/A</option>

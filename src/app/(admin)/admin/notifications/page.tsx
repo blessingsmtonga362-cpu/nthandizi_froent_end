@@ -126,10 +126,10 @@ export default function AdminNotificationsPage() {
                     {/* Content */}
                     <div className="flex-1">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                        <h3 className="font-black text-brand-slate text-lg leading-tight group-hover:text-brand-blue transition-colors">
+                        <h3 className="font-display font-normal text-brand-slate text-lg leading-tight group-hover:text-brand-blue transition-colors">
                           {n.title}
                         </h3>
-                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-normal uppercase tracking-widest">
                           <Clock size={12} />
                           {n.time}
                         </div>
@@ -141,10 +141,10 @@ export default function AdminNotificationsPage() {
                       {/* Actions for urgent notifications */}
                       {n.type === "urgent" && (
                         <div className="mt-6 flex gap-3">
-                          <Button className="bg-brand-blue hover:bg-brand-blueDark text-white h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                          <Button className="bg-brand-blue hover:bg-brand-blueDark text-white h-10 px-6 rounded-xl text-[10px] font-normal uppercase tracking-widest">
                             Review Now
                           </Button>
-                          <Button variant="ghost" className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <Button variant="ghost" className="h-10 px-6 rounded-xl text-[10px] font-normal uppercase tracking-widest text-slate-400">
                             Dismiss
                           </Button>
                         </div>
