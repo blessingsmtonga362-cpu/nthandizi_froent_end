@@ -107,8 +107,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 title={!expanded ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-4 rounded-lg transition-all duration-200 group relative",
-                  expanded ? "px-4 py-4" : "px-0 py-4 justify-center",
+                  "flex items-center gap-3 rounded-lg transition-all duration-200 group relative",
+                  expanded ? "px-3 py-3" : "px-0 py-3 justify-center",
                   isActive ? "bg-brand-blue/10" : "hover:bg-brand-blue/5"
                 )}
               >
@@ -133,7 +133,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       exit={{ opacity: 0, width: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       className={cn(
-                        "font-bold tracking-tight text-base whitespace-nowrap overflow-hidden transition-colors duration-200",
+                        "font-normal tracking-tight text-sm whitespace-nowrap overflow-hidden transition-colors duration-200",
                         isActive ? "text-brand-blue" : "text-slate-500 group-hover:text-brand-blue"
                       )}
                     >
@@ -148,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </motion.aside>
 
       {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 min-w-0">
+      <main className="relative flex-1 min-w-0">
         {/* Header */}
         <header
           className="sticky top-0 z-40 h-16 shrink-0 border-b border-[#E8E4DE] px-4 sm:px-6"
@@ -160,7 +160,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/UnimaLogo.png" alt="UNIMA" className="h-9 w-auto shrink-0 object-contain" />
                 <div className="h-6 w-px shrink-0 bg-slate-200" />
-                <span className="font-bold text-brand-slate text-sm tracking-tight truncate">
+                <span className="font-display font-normal text-slate-500 text-sm tracking-tight truncate">
                   University of Malawi
                 </span>
               </div>
@@ -186,16 +186,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {dropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-56 rounded-none shadow-xl border border-[#E8E4DE] overflow-hidden z-50"
+                className="absolute right-0 mt-2 w-56 rounded-none shadow-xl border border-[#E8E4DE] overflow-hidden z-50 font-sans"
                 style={{ backgroundColor: "#FAF9F7" }}
               >
                 <div className="px-4 py-3 border-b border-slate-100">
-                  <p className="text-sm font-bold text-brand-slate leading-none truncate">{displayName}</p>
-                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">Admin Portal</p>
+                  <p className="text-sm font-normal text-brand-slate leading-none truncate">{displayName}</p>
+                  <p className="text-[10px] text-slate-400 font-normal uppercase tracking-wider mt-1">Admin</p>
                 </div>
                 <button
                   onClick={() => setDropdownOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-normal text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <KeyRound size={15} className="text-brand-blue" />
                   Change Password
@@ -203,7 +203,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="h-px bg-slate-100" />
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-normal text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <LogOut size={15} />
                   Sign Out

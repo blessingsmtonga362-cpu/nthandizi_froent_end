@@ -11,8 +11,9 @@ import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { submitApplication, getApplicationStatus, getStoredUser, getToken } from "@/lib/api";
+import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
+import { toastSuccess, toastError } from "@/lib/toast";
 import Link from "next/link";
 
 const STEPS = ["Personal", "Family", "Education", "Review"];
@@ -104,14 +105,14 @@ export default function ApplicationWizard() {
     !data.personal.firstName && !data.personal.surname;
 
   const handleSubmit = async () => {
+    // ── This is the ONLY place data is sent to the backend database. ──────────
+    // The "Continue" button only advances the step counter — it never calls the API.
+    // All form data has been held in memory (Zustand) and locally in IndexedDB
+    // as a draft. On Submit, everything is sent together in one request.
+    // ──────────────────────────────────────────────────────────────────────────
     setSubmitting(true);
     setSubmitError("");
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("Your session has expired or you are not logged in. Please sign in again before submitting.");
-      }
-
       if (!data.declarationAccepted) {
         throw new Error("Please accept the declaration before submitting your application.");
       }
@@ -148,17 +149,25 @@ export default function ApplicationWizard() {
       await clearOfflinePersistence();
       const userId = getStoredUser()?.id ?? "anonymous";
       localStorage.removeItem(`application_started_${userId}`);
+      
+      // Show success toast
+      toastSuccess({
+        title: "Application Submitted",
+        description: "Your application has been received and is now in the review queue.",
+      });
+      
       const params = new URLSearchParams({
         submittedAt: response.submittedAt,
         status: response.applicationStatus,
       });
       router.push(`/apply/success?${params.toString()}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Submission failed. Please try again.";
-      setSubmitError(message);
-      if (/session expired|not authenticated|unauthori/i.test(message)) {
-        setTimeout(() => router.push("/login"), 1200);
-      }
+      const errorMessage = err instanceof Error ? err.message : "Submission failed. Please try again.";
+      setSubmitError(errorMessage);
+      toastError({
+        title: "Submission Failed",
+        description: errorMessage,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -181,7 +190,7 @@ export default function ApplicationWizard() {
             <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight mb-3">
               Application Already Submitted
             </h1>
-            <p className="text-slate-500 font-medium max-w-md">
+            <p className="text-slate-500 font-normal max-w-md">
               You have already completed and submitted your profiling application.
               You cannot apply again. Track your progress on the status page.
             </p>
@@ -203,7 +212,7 @@ export default function ApplicationWizard() {
           <img src="/apply.png" alt="Application" className="h-16 w-16 object-contain" />
           <div>
             <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">Student Profiling</h1>
-            <p className="text-slate-500 font-medium mt-2 max-w-md">
+            <p className="text-slate-500 font-normal mt-2 max-w-md">
               Complete your profile to be considered for support.
               The process has 4 sections and takes about 10 minutes.
             </p>

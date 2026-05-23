@@ -144,6 +144,7 @@ export interface AdminApplicantListItem extends AdminApplicantProfile {
   program: string;
   department: string | null;
   yearOfStudy: number | null;
+  score?: number | null;
 }
 
 export interface AdminApplicantsByStatusResponse {
@@ -524,19 +525,19 @@ export async function getApplicationStatus(): Promise<ApplicationStatus> {
 }
 
 export async function getStudentNotifications(): Promise<Notification[]> {
-  return request<Notification[]>("/student/notifications");
+  return request<Notification[]>("/notifications");
 }
 
 export async function markNotificationRead(id: string | number): Promise<void> {
-  return request<void>(`/student/notifications/${id}/read`, { method: "PATCH" });
+  return request<void>(`/notifications/${id}/read`, { method: "PATCH" });
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
-  return request<void>("/student/notifications/read-all", { method: "PATCH" });
+  return request<void>("/notifications/read-all", { method: "PATCH" });
 }
 
 export async function clearAllNotifications(): Promise<void> {
-  return request<void>("/student/notifications", { method: "DELETE" });
+  return request<void>("/notifications", { method: "DELETE" });
 }
 
 export async function submitApplication(payload: unknown): Promise<SubmitApplicationResponse> {

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navItems = [
   { name: "Home",          href: "/dashboard",      img: "/myhome.png" },
   { name: "Application",   href: "/apply",           img: "/apply.png" },
-  { name: "Status",        href: "/status",          img: "/statuss.png", iconClass: "w-6 h-6 min-w-[24px] min-h-[24px] scale-125" },
+  { name: "Status",        href: "/status",          img: "/statuss.png" },
   { name: "Notifications", href: "/notifications",   img: "/notification.png" },
 ];
 
@@ -75,18 +75,17 @@ export function StudentNav() {
                 href={item.href}
                 title={!expanded ? item.name : undefined}
                 className={cn(
-                  "flex items-center gap-4 rounded-lg transition-all duration-200 group relative",
-                  expanded ? "px-4 py-4" : "px-0 py-4 justify-center",
+                  "flex items-center gap-3 rounded-lg transition-all duration-200 group relative",
+                  expanded ? "px-3 py-3" : "px-0 py-3 justify-center",
                   isActive ? "bg-brand-blue/10" : "hover:bg-brand-blue/5"
                 )}
               >
-                {/* Icon — PNG with colour filter, consistent w-7 h-7 */}
+                {/* Icon */}
                 <img
                   src={item.img}
                   alt={item.name}
                   className={cn(
-                    "w-6 h-6 min-w-[24px] min-h-[24px] object-contain shrink-0 transition-all duration-200",
-                    "iconClass" in item && item.iconClass,
+                    "w-6 h-6 object-contain shrink-0 transition-all duration-200",
                     isActive
                       ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
                       : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
@@ -102,7 +101,7 @@ export function StudentNav() {
                       exit={{ opacity: 0, width: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       className={cn(
-                        "font-bold tracking-tight text-base whitespace-nowrap overflow-hidden transition-colors duration-200",
+                        "font-normal tracking-tight text-sm whitespace-nowrap overflow-hidden transition-colors duration-200",
                         isActive ? "text-brand-blue" : "text-slate-500 group-hover:text-brand-blue"
                       )}
                     >
@@ -133,8 +132,7 @@ export function StudentNav() {
                 src={item.img}
                 alt={item.name}
                 className={cn(
-                  "w-5 h-5 min-w-[20px] min-h-[20px] object-contain transition-all duration-200",
-                  "iconClass" in item && item.iconClass,
+                  "w-5 h-5 object-contain transition-all duration-200",
                   isActive
                     ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
                     : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
@@ -142,7 +140,7 @@ export function StudentNav() {
               />
               <span
                 className={cn(
-                  "text-[10px] font-bold tracking-tight transition-colors duration-200",
+                  "text-[10px] font-normal tracking-tight transition-colors duration-200",
                   isActive ? "text-brand-blue" : "text-slate-500 group-hover:text-brand-blue"
                 )}
               >

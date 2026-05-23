@@ -1,3 +1,4 @@
+// app/(auth)/register/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -80,7 +81,8 @@ export default function RegisterPage() {
         password: formData.password,
         university: "unima",
       });
-      router.push("/login");
+      // ✅ FIX: Redirect to verify (not verify-otp) with email parameter
+      router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -137,7 +139,7 @@ export default function RegisterPage() {
           <h1 className="text-4xl font-display font-bold text-brand-slate tracking-tight mb-1">
             Sign Up
           </h1>
-          <p className="text-slate-500 font-medium mb-10">
+          <p className="text-slate-500 font-normal mb-10">
             Join the Mthandizi student profiling platform.
           </p>
 
@@ -307,3 +309,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+

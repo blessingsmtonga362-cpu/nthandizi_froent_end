@@ -92,7 +92,7 @@ export default function LoginPage() {
           <h1 className="text-4xl font-display font-bold text-brand-slate tracking-tight mb-1">
             Welcome!
           </h1>
-          <p className="text-slate-500 font-medium mb-10">
+          <p className="text-slate-500 font-normal mb-10">
             Sign in to your account.
           </p>
 
