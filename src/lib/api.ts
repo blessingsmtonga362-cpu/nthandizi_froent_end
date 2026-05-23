@@ -403,6 +403,15 @@ async function request<T>(
           ? body.error
           : `Request failed: ${res.status}`;
 
+    if (res.status === 401) {
+      removeToken();
+      throw new Error(
+        message === "Unauthorized"
+          ? "Session expired or not authenticated. Please sign in again."
+          : `Authentication failed. ${message}`
+      );
+    }
+
     const detail =
       typeof body?.error === "string" &&
       body.error.trim().length > 0 &&
@@ -467,6 +476,8 @@ export async function login(email: string, password: string): Promise<LoginRespo
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+
+  setToken(raw.access_token);
 
   return {
     token: raw.access_token,

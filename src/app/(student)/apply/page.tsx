@@ -11,7 +11,7 @@ import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
+import { submitApplication, getApplicationStatus, getStoredUser, getToken } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
 import Link from "next/link";
 
@@ -107,6 +107,11 @@ export default function ApplicationWizard() {
     setSubmitting(true);
     setSubmitError("");
     try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("Your session has expired or you are not logged in. Please sign in again before submitting.");
+      }
+
       if (!data.declarationAccepted) {
         throw new Error("Please accept the declaration before submitting your application.");
       }
@@ -149,7 +154,11 @@ export default function ApplicationWizard() {
       });
       router.push(`/apply/success?${params.toString()}`);
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : "Submission failed. Please try again.");
+      const message = err instanceof Error ? err.message : "Submission failed. Please try again.";
+      setSubmitError(message);
+      if (/session expired|not authenticated|unauthori/i.test(message)) {
+        setTimeout(() => router.push("/login"), 1200);
+      }
     } finally {
       setSubmitting(false);
     }
