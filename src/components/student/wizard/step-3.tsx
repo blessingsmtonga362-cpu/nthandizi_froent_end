@@ -10,6 +10,7 @@ import { getAcademicYearOptions } from "@/lib/api";
 const labelClass = "text-sm font-medium text-slate-700 mb-2 block";
 const inputClass = "h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 placeholder:font-light hover:border-brand-blue focus:border-brand-blue transition-colors";
 const selectClass = "wizard-select w-full h-14 rounded-none border border-slate-200 px-6 font-normal text-slate-800 outline-none appearance-none hover:border-brand-blue focus:border-brand-blue transition-colors";
+const DEFAULT_YEAR_OPTIONS = [1, 2, 3, 4, 5, 6];
 
 type TabKey = "primary" | "secondary" | "tertiary";
 const TABS: { key: TabKey; label: string }[] = [
@@ -54,7 +55,7 @@ function EducationForm({ level, data, onChange }: { level: TabKey; data: Educati
 
 export default function Step3() {
   const [activeTab, setActiveTab] = useState<TabKey>("primary");
-  const [yearOptions, setYearOptions] = useState<number[]>([]);
+  const [yearOptions, setYearOptions] = useState<number[]>(DEFAULT_YEAR_OPTIONS);
   const { data, updateEducation, updateAcademics } = useApplicationStore();
 
   useEffect(() => {
@@ -64,11 +65,11 @@ export default function Step3() {
       try {
         const options = await getAcademicYearOptions();
         if (!cancelled) {
-          setYearOptions(options);
+          setYearOptions(options.length > 0 ? options : DEFAULT_YEAR_OPTIONS);
         }
       } catch {
         if (!cancelled) {
-          setYearOptions([]);
+          setYearOptions(DEFAULT_YEAR_OPTIONS);
         }
       }
     };
