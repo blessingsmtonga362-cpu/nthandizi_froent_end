@@ -56,9 +56,8 @@ export default function StudentDashboard() {
   const firstName = user?.firstName ?? "Student";
   const progressPct = loading ? 0 : progress.percent;
   const isSubmitted = status?.status === "submitted" || status?.status === "reviewing" || status?.status === "approved";
-  const locallyStarted = typeof window !== "undefined" && localStorage.getItem(`application_started_${user?.id ?? "anonymous"}`) === "true";
-  const hasStarted = progress.hasAnyInput || isSubmitted || locallyStarted;
-  const trackerSpan = hasStarted ? "lg:col-span-2" : "lg:col-span-1";
+  const hasStarted = progress.hasAnyInput || isSubmitted;
+  const trackerSpan = hasStarted && !isSubmitted ? "lg:col-span-2" : "lg:col-span-1";
 
   const sectionStates = [
     progress.sections.personal,
@@ -77,7 +76,7 @@ export default function StudentDashboard() {
         <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight">
           Moni, <span className="text-brand-blue">{firstName}</span>
         </h1>
-        <p className="text-slate-400 font-medium mt-1 text-sm">
+        <p className="text-slate-400 font-normal mt-1 text-sm">
           {isSubmitted ? "Your application has been submitted." : "Ready to complete your profiling process?"}
         </p>
       </header>
@@ -183,9 +182,7 @@ export default function StudentDashboard() {
 
           {!loading && isSubmitted && (
             <div className="flex flex-col items-center text-center py-6 gap-4">
-              <div className="w-16 h-16 bg-emerald-50 flex items-center justify-center">
-                <CheckCircle2 size={36} className="text-emerald-500" />
-              </div>
+              <CheckCircle2 size={36} className="text-emerald-500" />
               <h2 className="text-2xl font-display font-bold text-brand-slate">Congratulations!</h2>
               <p className="text-slate-500 text-sm font-normal max-w-sm">
                 You have completed your application. The committee will review your profile and get back to you.

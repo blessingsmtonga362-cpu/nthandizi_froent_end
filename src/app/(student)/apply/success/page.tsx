@@ -22,8 +22,8 @@ export default function SuccessPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md w-full text-center"
       >
-        <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-          <CheckCircle2 size={48} />
+        <div className="w-24 h-24 flex items-center justify-center mx-auto mb-8">
+          <CheckCircle2 size={48} className="text-emerald-500" />
         </div>
 
         <h1 className="text-3xl font-extrabold text-unima-blue mb-4">Application Submitted</h1>

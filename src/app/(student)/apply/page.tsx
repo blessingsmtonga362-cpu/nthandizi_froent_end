@@ -183,9 +183,7 @@ export default function ApplicationWizard() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8"
         >
-          <div className="w-20 h-20 bg-emerald-50 flex items-center justify-center">
-            <CheckCircle2 size={44} className="text-emerald-500" />
-          </div>
+          <CheckCircle2 size={44} className="text-emerald-500" />
           <div>
             <h1 className="text-3xl font-display font-bold text-brand-slate tracking-tight mb-3">
               Application Already Submitted

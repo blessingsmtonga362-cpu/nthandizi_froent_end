@@ -403,6 +403,8 @@ async function request<T>(
         : typeof body?.error === "string" && body.error.trim().length > 0
           ? body.error
           : `Request failed: ${res.status}`;
+    
+  
 
     const detail =
       typeof body?.error === "string" &&
