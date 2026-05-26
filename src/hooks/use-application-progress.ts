@@ -69,7 +69,7 @@ export function useApplicationProgress() {
   }, [refreshDraft]);
 
   useEffect(() => {
-    const onFocus = () => void refreshDraft();
+    const onFocus = () => { refreshDraft().catch(() => {}); };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refreshDraft]);

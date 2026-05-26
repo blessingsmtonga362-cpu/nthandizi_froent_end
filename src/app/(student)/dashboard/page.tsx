@@ -47,7 +47,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     const onFocus = () => {
       void fetchStatus();
-      void refreshDraft();
+      refreshDraft().catch(() => {});
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
