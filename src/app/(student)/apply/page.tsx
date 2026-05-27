@@ -100,6 +100,35 @@ export default function ApplicationWizard() {
   const nextStep = () => setStep(Math.min(data.currentStep + 1, 4));
   const prevStep = () => setStep(Math.max(data.currentStep - 1, 1));
 
+  // Step 2 siblings allocation validation
+  const getSiblingsAllocationError = (): string | null => {
+    if (data.currentStep !== 2) return null;
+    const f = data.family;
+    // No siblings — nothing to allocate
+    if (!f.numberOfSiblings || parseInt(f.numberOfSiblings) === 0) return null;
+    // Has siblings but numberStillInSchool not filled yet — skip (other validation will catch empty fields)
+    if (!f.numberStillInSchool) return null;
+    const stillInSchool = parseInt(f.numberStillInSchool) || 0;
+    const levelTotal =
+      (parseInt(f.siblingsInPrimary) || 0) +
+      (parseInt(f.siblingsInSecondary) || 0) +
+      (parseInt(f.siblingsInTertiary) || 0);
+    if (levelTotal !== stillInSchool) {
+      return `Please fully allocate siblings by level. ${levelTotal} of ${stillInSchool} allocated.`;
+    }
+    return null;
+  };
+
+  const handleContinue = () => {
+    const allocationError = getSiblingsAllocationError();
+    if (allocationError) {
+      setSubmitError(allocationError);
+      return;
+    }
+    setSubmitError("");
+    nextStep();
+  };
+
   // If the store already has progress, skip the landing screen
   const showLanding = !started && data.currentStep === 1 &&
     !data.personal.firstName && !data.personal.surname;
@@ -293,7 +322,7 @@ export default function ApplicationWizard() {
 
             {data.currentStep < 4 ? (
               <button
-                onClick={nextStep}
+                onClick={handleContinue}
                 className="h-14 px-12 bg-brand-slate text-white font-bold text-sm w-full sm:w-auto tracking-wide hover:bg-brand-blue hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Continue <ChevronRight className="w-5 h-5" />
