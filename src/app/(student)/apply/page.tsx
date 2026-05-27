@@ -160,15 +160,71 @@ export default function ApplicationWizard() {
         throw new Error(academicsValidationError);
       }
 
-      // Strip File objects — they need to be uploaded separately via multipart
+      // Strip File objects and irrelevant conditional family fields based on parentalStatus
+      const { family } = data;
+      const sharedFamilyFields = {
+        parentalStatus: family.parentalStatus,
+        numberOfSiblings: family.numberOfSiblings,
+        numberStillInSchool: family.numberStillInSchool,
+        siblingsInPrimary: family.siblingsInPrimary,
+        siblingsInSecondary: family.siblingsInSecondary,
+        siblingsInTertiary: family.siblingsInTertiary,
+      };
+
+      const conditionalFamilyFields =
+        family.parentalStatus === "both"
+          ? {
+              fatherFirstName: family.fatherFirstName,
+              fatherSurname: family.fatherSurname,
+              fatherNationalId: family.fatherNationalId,
+              fatherPhone: family.fatherPhone,
+              fatherProfession: family.fatherProfession,
+              fatherMonthlyIncome: family.fatherMonthlyIncome,
+              fatherTa: family.fatherTa,
+              fatherResidentialAddress: family.fatherResidentialAddress,
+              fatherPostalAddress: family.fatherPostalAddress,
+              motherFirstName: family.motherFirstName,
+              motherSurname: family.motherSurname,
+              motherNationalId: family.motherNationalId,
+              motherPhone: family.motherPhone,
+              motherProfession: family.motherProfession,
+              motherMonthlyIncome: family.motherMonthlyIncome,
+              motherTa: family.motherTa,
+              motherResidentialAddress: family.motherResidentialAddress,
+              motherPostalAddress: family.motherPostalAddress,
+            }
+          : family.parentalStatus === "one"
+            ? {
+                parentFirstName: family.parentFirstName,
+                parentSurname: family.parentSurname,
+                parentNationalId: family.parentNationalId,
+                parentPhone: family.parentPhone,
+                parentMonthlyIncome: family.parentMonthlyIncome,
+                studentRelationship: family.studentRelationship,
+                parentTa: family.parentTa,
+                parentResidentialAddress: family.parentResidentialAddress,
+                parentPostalAddress: family.parentPostalAddress,
+                deceasedParentId: family.deceasedParentId,
+              }
+            : family.parentalStatus === "none"
+              ? {
+                  guardianFirstName: family.guardianFirstName,
+                  guardianSurname: family.guardianSurname,
+                  guardianNationalId: family.guardianNationalId,
+                  guardianPhone: family.guardianPhone,
+                  guardianMonthlyIncome: family.guardianMonthlyIncome,
+                  relationshipToGuardian: family.relationshipToGuardian,
+                  guardianTa: family.guardianTa,
+                  guardianResidentialAddress: family.guardianResidentialAddress,
+                  guardianPostalAddress: family.guardianPostalAddress,
+                  deceasedFatherId: family.deceasedFatherId,
+                  deceasedMotherId: family.deceasedMotherId,
+                }
+              : {};
+
       const payload = {
         personal: { ...data.personal, studentIdFile: undefined, nationalIdFile: undefined },
-        family: {
-          ...data.family,
-          deathCertificateFile: undefined,
-          guarantorNationalIdFile: undefined,
-          guarantorConsentFile: undefined,
-        },
+        family: { ...sharedFamilyFields, ...conditionalFamilyFields },
         education: data.education,
         academics: { ...data.academics, transcriptFile: undefined },
         payment: data.payment,
