@@ -1,12 +1,8 @@
-/**
- * Central API client.
- * Set NEXT_PUBLIC_API_URL in your .env.local to point at your backend,
- * e.g.  NEXT_PUBLIC_API_URL=http://localhost:3001
- */
+
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-// ─── Token helpers ────────────────────────────────────────────────────────────
+// Token helpers
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -37,8 +33,7 @@ export function setStoredUser(user: AuthUser): void {
   localStorage.setItem("auth_user", JSON.stringify(user));
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//  Types
 export type AuthRole = "student" | "admin";
 export type BackendRole = "user" | "admin";
 
@@ -348,13 +343,14 @@ function deriveStatusFromReviewApplication(data: ReviewApplicationResponse): App
   };
 }
 
-// ─── Core fetch wrapper ───────────────────────────────────────────────────────
+//  Core fetch wrapper 
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 8000;
 
 async function request<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS
 ): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -366,7 +362,7 @@ async function request<T>(
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let res: Response;
   try {
@@ -384,7 +380,7 @@ async function request<T>(
         "Request timed out. Make sure the backend server is running and try again."
       );
     }
-    // Always throw a proper Error — never propagate undefined or non-Error values
+    
     if (error instanceof Error) throw error;
     throw new Error(
       typeof error === "string" && error.length > 0
@@ -432,7 +428,7 @@ async function request<T>(
   }) as Promise<T>;
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
+//  Auth 
 
 export interface RegisterPayload {
   firstName: string;
@@ -447,7 +443,7 @@ export async function registerUser(payload: RegisterPayload): Promise<{ message:
   return request<{ message: string }>("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  }, 30000); 
 }
 
 export async function verifyOtp(email: string, otp: string): Promise<{ message: string }> {
@@ -496,11 +492,11 @@ export async function login(email: string, password: string): Promise<LoginRespo
 }
 
 export async function logout(): Promise<void> {
-  // Backend is stateless JWT — just clear local storage
+  
   removeToken();
 }
 
-// ─── Student ──────────────────────────────────────────────────────────────────
+//  Student 
 
 export async function getApplicationStatus(): Promise<ApplicationStatus> {
   try {
@@ -556,7 +552,7 @@ export async function saveApplicationDraft(payload: unknown): Promise<void> {
   });
 }
 
-// ─── Admin ────────────────────────────────────────────────────────────────────
+//  Admin 
 
 export async function getAdminDashboardStats(): Promise<DashboardStats> {
   return request<DashboardStats>("/admin/dashboard/stats");

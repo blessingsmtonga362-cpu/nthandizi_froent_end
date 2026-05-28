@@ -25,7 +25,7 @@ function getDraftKey(): string {
 }
 
 export function useOfflinePersistence() {
-  const { data, updatePersonal, updateFamily, updateEducation, updateAcademics, updatePayment } = useApplicationStore();
+  const { data, updatePersonal, updateFamily, updateEducation, updatePayment } = useApplicationStore();
 
   // ── On mount: restore any previously saved local draft into memory ──────────
   useEffect(() => {
@@ -48,7 +48,6 @@ export function useOfflinePersistence() {
             updateEducation('secondary', saved.education.secondary);
             updateEducation('tertiary', saved.education.tertiary);
           }
-          if (saved.academics) updateAcademics(saved.academics);
           if (saved.payment) updatePayment(saved.payment);
           if (saved.reviewVisited) {
             useApplicationStore.getState().setReviewVisited(true);
@@ -81,7 +80,6 @@ export function useOfflinePersistence() {
           personal: { ...data.personal, studentIdFile: null, nationalIdFile: null },
           family: { ...data.family, deathCertificateFile: null, guarantorNationalIdFile: null, guarantorConsentFile: null },
           education: data.education,
-          academics: { ...data.academics, transcriptFile: null },
           payment: data.payment,
           currentStep: data.currentStep,
           reviewVisited: data.reviewVisited,

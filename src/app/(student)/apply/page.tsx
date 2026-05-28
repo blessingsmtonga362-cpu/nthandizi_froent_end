@@ -25,12 +25,6 @@ type EducationDraft = {
   whoPaidFees?: string;
 };
 
-type AcademicsDraft = {
-  programOfStudy?: string;
-  department?: string;
-  yearOfStudy?: string;
-};
-
 function getIncompleteEducationMessage(label: string, level: EducationDraft): string | null {
   const values = [
     level.schoolName?.trim(),
@@ -52,29 +46,6 @@ function getIncompleteEducationMessage(label: string, level: EducationDraft): st
   if (missingFields.length === 0) return null;
 
   return `${label} education is incomplete. Please provide ${missingFields.join(", ")}.`;
-}
-
-function getIncompleteAcademicsMessage(academics: AcademicsDraft): string | null {
-  const values = [
-    academics.programOfStudy?.trim(),
-    academics.department?.trim(),
-    academics.yearOfStudy?.trim(),
-  ];
-
-  const hasAnyValue = values.some((value) => Boolean(value));
-  if (!hasAnyValue) {
-    return "Academic details are required. Please provide your program of study, department, and year of study.";
-  }
-
-  const missingFields: string[] = [];
-
-  if (!academics.programOfStudy?.trim()) missingFields.push("program of study");
-  if (!academics.department?.trim()) missingFields.push("department");
-  if (!academics.yearOfStudy?.trim()) missingFields.push("year of study");
-
-  if (missingFields.length === 0) return null;
-
-  return `Academic details are incomplete. Please provide ${missingFields.join(", ")}.`;
 }
 
 export default function ApplicationWizard() {
@@ -134,11 +105,11 @@ export default function ApplicationWizard() {
     !data.personal.firstName && !data.personal.surname;
 
   const handleSubmit = async () => {
-    // ── This is the ONLY place data is sent to the backend database. ──────────
+    // This is the ONLY place data is sent to the backend database.
     // The "Continue" button only advances the step counter — it never calls the API.
     // All form data has been held in memory (Zustand) and locally in IndexedDB
     // as a draft. On Submit, everything is sent together in one request.
-    // ──────────────────────────────────────────────────────────────────────────
+  
     setSubmitting(true);
     setSubmitError("");
     try {
@@ -153,11 +124,6 @@ export default function ApplicationWizard() {
 
       if (educationValidationError) {
         throw new Error(educationValidationError);
-      }
-
-      const academicsValidationError = getIncompleteAcademicsMessage(data.academics);
-      if (academicsValidationError) {
-        throw new Error(academicsValidationError);
       }
 
       // Strip File objects and irrelevant conditional family fields based on parentalStatus
@@ -226,7 +192,6 @@ export default function ApplicationWizard() {
         personal: { ...data.personal, studentIdFile: undefined, nationalIdFile: undefined },
         family: { ...sharedFamilyFields, ...conditionalFamilyFields },
         education: data.education,
-        academics: { ...data.academics, transcriptFile: undefined },
         payment: data.payment,
       };
       const response = await submitApplication(payload);
@@ -261,7 +226,7 @@ export default function ApplicationWizard() {
   return (
     <div className="max-w-4xl mx-auto pb-32 pt-4">
 
-      {/* ── Already submitted screen ── */}
+      {/* Already submitted screen */}
       {alreadySubmitted ? (
         <motion.div
           initial={{ opacity: 0, y: 24 }}
