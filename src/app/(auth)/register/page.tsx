@@ -76,7 +76,6 @@ export default function RegisterPage() {
         lastName: formData.surname.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        university: "unima",
       });
      
       router.push(`/verify?email=${encodeURIComponent(formData.email)}`);

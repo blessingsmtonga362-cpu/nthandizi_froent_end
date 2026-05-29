@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { logout, getStoredUser, type AuthUser } from "@/lib/api";
 import { clearOfflinePersistence } from "@/hooks/use-offline-persistence";
+import { useUnreadCount } from "@/hooks/use-unread-count";
 
 const EXPANDED_W = 256;
 const COLLAPSED_W = 72;
@@ -29,6 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [expanded, setExpanded] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { loading } = useAuth("admin");
+  const unreadCount = useUnreadCount("admin");
 
   const [storedUser, setStoredUser] = useState<AuthUser | null>(null);
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 flex flex-col gap-1 px-3 pt-6">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
+            const isNotifications = item.label === "Notifications";
             return (
               <Link
                 key={item.label}
@@ -112,17 +115,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   isActive ? "bg-brand-blue/10" : "hover:bg-brand-blue/5"
                 )}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.img}
-                  alt={item.label}
-                  className={cn(
-                    "w-6 h-6 object-contain shrink-0 transition-all duration-200",
-                    isActive
-                      ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
-                      : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                {/* Icon wrapper — relative so badge can be positioned on it */}
+                <div className="relative shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.img}
+                    alt={item.label}
+                    className={cn(
+                      "w-6 h-6 object-contain transition-all duration-200",
+                      isActive
+                        ? "[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                        : "opacity-50 group-hover:opacity-100 group-hover:[filter:invert(27%)_sepia(98%)_saturate(1200%)_hue-rotate(210deg)_brightness(97%)_contrast(97%)]"
+                    )}
+                  />
+                  {isNotifications && unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
                   )}
-                />
+                </div>
 
                 <AnimatePresence initial={false}>
                   {expanded && (
