@@ -6,25 +6,35 @@ export function ErrorHandler() {
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const rawReason = event.reason;
-      const reason = rawReason === undefined ? "Unknown promise rejection reason" : rawReason;
+      
+      // Check if reason is undefined or null
+      if (rawReason === undefined || rawReason === null) {
+        // Silently prevent default behavior for undefined rejections
+        event.preventDefault();
+        return;
+      }
 
       let normalizedReason: string;
       try {
-        if (reason instanceof Error) {
-          normalizedReason = reason.stack || reason.message || String(reason);
-        } else if (typeof reason === "object" && reason !== null) {
-          normalizedReason = JSON.stringify(reason, null, 2) ?? String(reason);
-        } else if (typeof reason === "symbol") {
-          normalizedReason = reason.toString();
+        if (rawReason instanceof Error) {
+          normalizedReason = rawReason.stack || rawReason.message || String(rawReason);
+        } else if (typeof rawReason === "object") {
+          normalizedReason = JSON.stringify(rawReason, null, 2) ?? String(rawReason);
+        } else if (typeof rawReason === "symbol") {
+          normalizedReason = rawReason.toString();
         } else {
-          normalizedReason = String(reason);
+          normalizedReason = String(rawReason);
         }
       } catch (error) {
-        normalizedReason = "Unknown promise rejection reason";
+        normalizedReason = "Failed to normalize rejection reason";
       }
 
-      console.error("Unhandled promise rejection:", normalizedReason);
-      // Prevent the default browser behavior (logging to console)
+      // Only log if we have meaningful content
+      if (normalizedReason && normalizedReason !== "undefined") {
+        console.error("Unhandled promise rejection:", normalizedReason);
+      }
+      
+      // Prevent the default browser behavior
       event.preventDefault();
     };
 

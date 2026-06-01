@@ -9,44 +9,24 @@ import Step1 from "@/components/student/wizard/step-1";
 import Step2 from "@/components/student/wizard/step-2";
 import Step3 from "@/components/student/wizard/step-3";
 import Step4 from "@/components/student/wizard/step-4";
+import { OtpVerificationModal } from "@/components/student/wizard/otp-verification-modal";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { formatMalawiPhone } from "@/lib/phone";
+import {
+  FieldErrors,
+  validateApplication,
+  validateStep1,
+  validateStep2,
+  validateStep3,
+  validateStep4,
+} from "@/lib/application-validation";
 import Link from "next/link";
 
 const STEPS = ["Personal", "Family", "Education", "Review"];
-
-type EducationDraft = {
-  schoolName?: string;
-  tuitionFee?: string;
-  yearCompleted?: string;
-  whoPaidFees?: string;
-};
-
-function getIncompleteEducationMessage(label: string, level: EducationDraft): string | null {
-  const values = [
-    level.schoolName?.trim(),
-    level.tuitionFee?.trim(),
-    level.yearCompleted?.trim(),
-    level.whoPaidFees?.trim(),
-  ];
-
-  const hasAnyValue = values.some((value) => Boolean(value));
-  if (!hasAnyValue) return null;
-
-  const missingFields: string[] = [];
-
-  if (!level.schoolName?.trim()) missingFields.push("school name");
-  if (!level.tuitionFee?.trim()) missingFields.push("tuition fee");
-  if (!level.yearCompleted?.trim()) missingFields.push("year completed");
-  if (!level.whoPaidFees?.trim()) missingFields.push("who paid fees");
-
-  if (missingFields.length === 0) return null;
-
-  return `${label} education is incomplete. Please provide ${missingFields.join(", ")}.`;
-}
 
 export default function ApplicationWizard() {
   useOfflinePersistence();
@@ -55,6 +35,10 @@ export default function ApplicationWizard() {
   const [submitError, setSubmitError] = useState("");
   const [started, setStarted] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [validationAttemptedSteps, setValidationAttemptedSteps] = useState<number[]>([]);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
   const router = useRouter();
 
   // Check on mount whether the application was already submitted
@@ -71,35 +55,69 @@ export default function ApplicationWizard() {
   const nextStep = () => setStep(Math.min(data.currentStep + 1, 4));
   const prevStep = () => setStep(Math.max(data.currentStep - 1, 1));
 
-  // Step 2 siblings allocation validation
-  const getSiblingsAllocationError = (): string | null => {
-    if (data.currentStep !== 2) return null;
-    const f = data.family;
-    // No siblings — nothing to allocate
-    if (!f.numberOfSiblings || parseInt(f.numberOfSiblings) === 0) return null;
-    // Has siblings but numberStillInSchool not filled yet — skip (other validation will catch empty fields)
-    if (!f.numberStillInSchool) return null;
-    const stillInSchool = parseInt(f.numberStillInSchool) || 0;
-    const levelTotal =
-      (parseInt(f.siblingsInPrimary) || 0) +
-      (parseInt(f.siblingsInSecondary) || 0) +
-      (parseInt(f.siblingsInTertiary) || 0);
-    if (levelTotal !== stillInSchool) {
-      return `Please fully allocate siblings by level. ${levelTotal} of ${stillInSchool} allocated.`;
-    }
-    return null;
+  const markCurrentStepValidationAttempted = () => {
+    setValidationAttemptedSteps((steps) =>
+      steps.includes(data.currentStep) ? steps : [...steps, data.currentStep]
+    );
   };
 
-  const handleContinue = () => {
-    const allocationError = getSiblingsAllocationError();
-    if (allocationError) {
-      setSubmitError(allocationError);
-      return;
+  const onlyErrors = (errors: FieldErrors, keys: string[]): FieldErrors =>
+    keys.reduce<FieldErrors>((filtered, key) => {
+      if (errors[key]) filtered[key] = errors[key];
+      return filtered;
+    }, {});
+
+  const getImmediateValidationErrors = (step = data.currentStep): FieldErrors => {
+    if (step === 1) {
+      const errors = onlyErrors(validateStep1(data), [
+        "personal.phoneNumber",
+        "personal.dateOfBirth",
+        "payment.phoneNumber",
+      ]);
+
+      if (!data.personal.phoneNumber) delete errors["personal.phoneNumber"];
+      if (!data.personal.dateOfBirth) delete errors["personal.dateOfBirth"];
+      if (!data.payment.phoneNumber) delete errors["payment.phoneNumber"];
+
+      return errors;
     }
+
+    if (step === 2) {
+      const errors = onlyErrors(validateStep2(data), [
+        "family.fatherPhone",
+        "family.motherPhone",
+        "family.parentPhone",
+        "family.guardianPhone",
+      ]);
+
+      if (!data.family.fatherPhone) delete errors["family.fatherPhone"];
+      if (!data.family.motherPhone) delete errors["family.motherPhone"];
+      if (!data.family.parentPhone) delete errors["family.parentPhone"];
+      if (!data.family.guardianPhone) delete errors["family.guardianPhone"];
+
+      return errors;
+    }
+
+    return {};
+  };
+
+  const getDisplayErrors = (step = data.currentStep): FieldErrors => {
+    if (submitAttempted) {
+      if (step === 1) return validateStep1(data);
+      if (step === 2) return validateStep2(data);
+      if (step === 3) return validateStep3(data);
+      if (step === 4) return validateStep4(data);
+    }
+
+    return validationAttemptedSteps.includes(step)
+      ? getImmediateValidationErrors(step)
+      : {};
+  };
+  const handleContinue = () => {
+    markCurrentStepValidationAttempted();
     setSubmitError("");
     nextStep();
   };
-
   // If the store already has progress, skip the landing screen
   const showLanding = !started && data.currentStep === 1 &&
     !data.personal.firstName && !data.personal.surname;
@@ -110,91 +128,109 @@ export default function ApplicationWizard() {
     // All form data has been held in memory (Zustand) and locally in IndexedDB
     // as a draft. On Submit, everything is sent together in one request.
   
-    setSubmitting(true);
     setSubmitError("");
-    try {
-      if (!data.declarationAccepted) {
-        throw new Error("Please accept the declaration before submitting your application.");
-      }
 
-      const educationValidationError =
-        getIncompleteEducationMessage("Primary", data.education.primary) ??
-        getIncompleteEducationMessage("Secondary", data.education.secondary) ??
-        getIncompleteEducationMessage("Tertiary", data.education.tertiary);
+    const validation = validateApplication(data);
+    if (validation.firstInvalidStep !== null) {
+      setSubmitAttempted(true);
+      setValidationAttemptedSteps([1, 2, 3, 4]);
+      setStep(validation.firstInvalidStep);
+      setSubmitError("Please complete the highlighted required fields before submitting.");
+      return;
+    }
 
-      if (educationValidationError) {
-        throw new Error(educationValidationError);
-      }
+    // Build payload
+    const { family } = data;
+    const sharedFamilyFields = {
+      parentalStatus: family.parentalStatus,
+      numberOfSiblings: family.numberOfSiblings,
+      numberStillInSchool: family.numberStillInSchool,
+      siblingsInPrimary: family.siblingsInPrimary,
+      siblingsInSecondary: family.siblingsInSecondary,
+      siblingsInTertiary: family.siblingsInTertiary,
+    };
 
-      // Strip File objects and irrelevant conditional family fields based on parentalStatus
-      const { family } = data;
-      const sharedFamilyFields = {
-        parentalStatus: family.parentalStatus,
-        numberOfSiblings: family.numberOfSiblings,
-        numberStillInSchool: family.numberStillInSchool,
-        siblingsInPrimary: family.siblingsInPrimary,
-        siblingsInSecondary: family.siblingsInSecondary,
-        siblingsInTertiary: family.siblingsInTertiary,
-      };
-
-      const conditionalFamilyFields =
-        family.parentalStatus === "both"
+    const conditionalFamilyFields =
+      family.parentalStatus === "both"
+        ? {
+            fatherFirstName: family.fatherFirstName,
+            fatherSurname: family.fatherSurname,
+            fatherNationalId: family.fatherNationalId,
+            fatherPhone: formatMalawiPhone(family.fatherPhone),
+            fatherProfession: family.fatherProfession,
+            fatherMonthlyIncome: family.fatherMonthlyIncome,
+            fatherTa: family.fatherTa,
+            fatherResidentialAddress: family.fatherResidentialAddress,
+            fatherPostalAddress: family.fatherPostalAddress,
+            motherFirstName: family.motherFirstName,
+            motherSurname: family.motherSurname,
+            motherNationalId: family.motherNationalId,
+            motherPhone: formatMalawiPhone(family.motherPhone),
+            motherProfession: family.motherProfession,
+            motherMonthlyIncome: family.motherMonthlyIncome,
+            motherTa: family.motherTa,
+            motherResidentialAddress: family.motherResidentialAddress,
+            motherPostalAddress: family.motherPostalAddress,
+          }
+        : family.parentalStatus === "one"
           ? {
-              fatherFirstName: family.fatherFirstName,
-              fatherSurname: family.fatherSurname,
-              fatherNationalId: family.fatherNationalId,
-              fatherPhone: family.fatherPhone,
-              fatherProfession: family.fatherProfession,
-              fatherMonthlyIncome: family.fatherMonthlyIncome,
-              fatherTa: family.fatherTa,
-              fatherResidentialAddress: family.fatherResidentialAddress,
-              fatherPostalAddress: family.fatherPostalAddress,
-              motherFirstName: family.motherFirstName,
-              motherSurname: family.motherSurname,
-              motherNationalId: family.motherNationalId,
-              motherPhone: family.motherPhone,
-              motherProfession: family.motherProfession,
-              motherMonthlyIncome: family.motherMonthlyIncome,
-              motherTa: family.motherTa,
-              motherResidentialAddress: family.motherResidentialAddress,
-              motherPostalAddress: family.motherPostalAddress,
+              parentFirstName: family.parentFirstName,
+              parentSurname: family.parentSurname,
+              parentNationalId: family.parentNationalId,
+              parentPhone: formatMalawiPhone(family.parentPhone),
+              parentMonthlyIncome: family.parentMonthlyIncome,
+              studentRelationship: family.studentRelationship,
+              parentTa: family.parentTa,
+              parentResidentialAddress: family.parentResidentialAddress,
+              parentPostalAddress: family.parentPostalAddress,
+              deceasedParentId: family.deceasedParentId,
             }
-          : family.parentalStatus === "one"
+          : family.parentalStatus === "none"
             ? {
-                parentFirstName: family.parentFirstName,
-                parentSurname: family.parentSurname,
-                parentNationalId: family.parentNationalId,
-                parentPhone: family.parentPhone,
-                parentMonthlyIncome: family.parentMonthlyIncome,
-                studentRelationship: family.studentRelationship,
-                parentTa: family.parentTa,
-                parentResidentialAddress: family.parentResidentialAddress,
-                parentPostalAddress: family.parentPostalAddress,
-                deceasedParentId: family.deceasedParentId,
+                guardianFirstName: family.guardianFirstName,
+                guardianSurname: family.guardianSurname,
+                guardianNationalId: family.guardianNationalId,
+                guardianPhone: formatMalawiPhone(family.guardianPhone),
+                guardianMonthlyIncome: family.guardianMonthlyIncome,
+                relationshipToGuardian: family.relationshipToGuardian,
+                guardianTa: family.guardianTa,
+                guardianResidentialAddress: family.guardianResidentialAddress,
+                guardianPostalAddress: family.guardianPostalAddress,
+                deceasedFatherId: family.deceasedFatherId,
+                deceasedMotherId: family.deceasedMotherId,
               }
-            : family.parentalStatus === "none"
-              ? {
-                  guardianFirstName: family.guardianFirstName,
-                  guardianSurname: family.guardianSurname,
-                  guardianNationalId: family.guardianNationalId,
-                  guardianPhone: family.guardianPhone,
-                  guardianMonthlyIncome: family.guardianMonthlyIncome,
-                  relationshipToGuardian: family.relationshipToGuardian,
-                  guardianTa: family.guardianTa,
-                  guardianResidentialAddress: family.guardianResidentialAddress,
-                  guardianPostalAddress: family.guardianPostalAddress,
-                  deceasedFatherId: family.deceasedFatherId,
-                  deceasedMotherId: family.deceasedMotherId,
-                }
-              : {};
+            : {};
 
-      const payload = {
-        personal: { ...data.personal, studentIdFile: undefined, nationalIdFile: undefined },
-        family: { ...sharedFamilyFields, ...conditionalFamilyFields },
-        education: data.education,
-        payment: data.payment,
-      };
-      const response = await submitApplication(payload);
+    const payload = {
+      personal: {
+        ...data.personal,
+        phoneNumber: formatMalawiPhone(data.personal.phoneNumber),
+        studentIdFile: undefined,
+        nationalIdFile: undefined,
+      },
+      family: { ...sharedFamilyFields, ...conditionalFamilyFields },
+      education: data.education,
+      payment: {
+        ...data.payment,
+        phoneNumber: data.payment.phoneNumber
+          ? formatMalawiPhone(data.payment.phoneNumber)
+          : "",
+      },
+    };
+
+    // Store payload and show OTP modal
+    setPendingPayload(payload);
+    setShowOtpModal(true);
+  };
+
+  const handleOtpVerified = async () => {
+    if (!pendingPayload) return;
+
+    setShowOtpModal(false);
+    setSubmitting(true);
+
+    try {
+      const response = await submitApplication(pendingPayload);
       reset();
       await clearOfflinePersistence();
       const userId = getStoredUser()?.id ?? "anonymous";
@@ -211,8 +247,8 @@ export default function ApplicationWizard() {
         status: response.applicationStatus,
       });
       router.push(`/apply/success?${params.toString()}`);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Submission failed. Please try again.";
+    } catch (error) {
+      const errorMessage = "Submission failed. Please check your details and try again.";
       setSubmitError(errorMessage);
       toastError({
         title: "Submission Failed",
@@ -220,7 +256,13 @@ export default function ApplicationWizard() {
       });
     } finally {
       setSubmitting(false);
+      setPendingPayload(null);
     }
+  };
+
+  const handleOtpCancel = () => {
+    setShowOtpModal(false);
+    setPendingPayload(null);
   };
 
   return (
@@ -313,10 +355,10 @@ export default function ApplicationWizard() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.4, ease: "circOut" }}
               >
-                {data.currentStep === 1 && <Step1 />}
-                {data.currentStep === 2 && <Step2 />}
-                {data.currentStep === 3 && <Step3 />}
-                {data.currentStep === 4 && <Step4 />}
+                {data.currentStep === 1 && <Step1 showValidation={validationAttemptedSteps.includes(1)} errors={getDisplayErrors(1)} />}
+                {data.currentStep === 2 && <Step2 showValidation={validationAttemptedSteps.includes(2)} errors={getDisplayErrors(2)} />}
+                {data.currentStep === 3 && <Step3 errors={getDisplayErrors(3)} />}
+                {data.currentStep === 4 && <Step4 errors={getDisplayErrors(4)} />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -367,6 +409,16 @@ export default function ApplicationWizard() {
           </div>
         </>
       )}
+
+      {/* OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        phoneNumber={formatMalawiPhone(data.personal.phoneNumber)}
+        onVerified={handleOtpVerified}
+        onCancel={handleOtpCancel}
+        isSubmitting={submitting}
+      />
     </div>
   );
 }
+

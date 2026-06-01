@@ -18,12 +18,6 @@ import {
 } from "@/lib/api";
 import { toastSuccess, toastError } from "@/lib/toast";
 
-function formatValue(value: string | number | null | undefined) {
-  if (value === null || value === undefined) return "Not provided";
-  if (typeof value === "string" && value.trim() === "") return "Not provided";
-  return String(value);
-}
-
 function statusBadgeClass(status: AdminApplicantStatus) {
   switch (status) {
     case "approved":
@@ -201,9 +195,6 @@ export default function ApplicantsPage() {
       setReviewSubmitting(false);
     }
   };
-
-  const personal = details?.application.personalDetails;
-  const academics = details?.application.academicDetails;
 
   return (
     <>

@@ -157,7 +157,7 @@ export default function LandingPage() {
                 variants={itemVariants}
                 className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-12 leading-relaxed font-normal"
               >
-                Mthandizi is an independent platform built to standardize student support
+                Mthandizi is a platform built to standardize student support
                 across Malawi. Build a profile that connects you to institutional resources.
               </motion.p>
 

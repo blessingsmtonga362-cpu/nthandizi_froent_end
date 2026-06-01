@@ -4,6 +4,8 @@ import { useApplicationStore } from "@/lib/store/use-application-store";
 import { Edit3, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { formatMalawiPhone } from "@/lib/phone";
+import { FieldErrors } from "@/lib/application-validation";
 
 function ReviewCard({
   title,
@@ -47,7 +49,7 @@ function ReviewCard({
 
       {!expanded && (
         <div className="px-8 py-3 text-[11px] text-slate-300 font-medium italic">
-          Click "View More" to see details
+          Click View More to see details
         </div>
       )}
     </div>
@@ -65,7 +67,7 @@ function Field({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
-export default function Step4() {
+export default function Step4({ errors = {} }: { errors?: FieldErrors }) {
   const { data, setStep, setReviewVisited, setDeclarationAccepted } = useApplicationStore();
   const { personal: p, family: f, education: e, payment: pay } = data;
 
@@ -85,7 +87,7 @@ export default function Step4() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
           <Field label="First Name" value={p.firstName} />
           <Field label="Surname" value={p.surname} />
-          <Field label="Phone Number" value={p.phoneNumber} />
+          <Field label="Phone Number" value={formatMalawiPhone(p.phoneNumber)} />
           <Field label="National ID" value={p.nationalId} />
           <Field label="Registration No." value={p.registrationNumber} />
           <Field label="Date of Birth" value={p.dateOfBirth} />
@@ -100,7 +102,7 @@ export default function Step4() {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Payment Details</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Field label="Payment Method" value={PAYMENT_LABELS[pay.paymentMethod] ?? pay.paymentMethod} />
-            {pay.phoneNumber && <Field label="Phone Number" value={pay.phoneNumber} />}
+            {pay.phoneNumber && <Field label="Phone Number" value={formatMalawiPhone(pay.phoneNumber)} />}
             {pay.accountNumber && <Field label="Account Number" value={pay.accountNumber} />}
             {pay.accountName && <Field label="Account Name" value={pay.accountName} />}
           </div>
@@ -117,7 +119,7 @@ export default function Step4() {
                 <Field label="First Name" value={f.fatherFirstName} />
                 <Field label="Surname" value={f.fatherSurname} />
                 <Field label="National ID" value={f.fatherNationalId} />
-                <Field label="Phone" value={f.fatherPhone} />
+                <Field label="Phone" value={formatMalawiPhone(f.fatherPhone)} />
                 <Field label="Profession" value={f.fatherProfession} />
                 <Field label="Monthly Income" value={f.fatherMonthlyIncome ? `MWK ${f.fatherMonthlyIncome}` : undefined} />
                 <Field label="T/A" value={f.fatherTa} />
@@ -131,7 +133,7 @@ export default function Step4() {
                 <Field label="First Name" value={f.motherFirstName} />
                 <Field label="Surname" value={f.motherSurname} />
                 <Field label="National ID" value={f.motherNationalId} />
-                <Field label="Phone" value={f.motherPhone} />
+                <Field label="Phone" value={formatMalawiPhone(f.motherPhone)} />
                 <Field label="Profession" value={f.motherProfession} />
                 <Field label="Monthly Income" value={f.motherMonthlyIncome ? `MWK ${f.motherMonthlyIncome}` : undefined} />
                 <Field label="T/A" value={f.motherTa} />
@@ -150,7 +152,7 @@ export default function Step4() {
                 <Field label="First Name" value={f.parentFirstName} />
                 <Field label="Surname" value={f.parentSurname} />
                 <Field label="National ID" value={f.parentNationalId} />
-                <Field label="Phone" value={f.parentPhone} />
+                <Field label="Phone" value={formatMalawiPhone(f.parentPhone)} />
                 <Field label="Monthly Income" value={f.parentMonthlyIncome ? `MWK ${f.parentMonthlyIncome}` : undefined} />
                 <Field label="Relationship" value={f.studentRelationship} />
                 <Field label="T/A" value={f.parentTa} />
@@ -172,7 +174,7 @@ export default function Step4() {
                 <Field label="First Name" value={f.guardianFirstName} />
                 <Field label="Surname" value={f.guardianSurname} />
                 <Field label="National ID" value={f.guardianNationalId} />
-                <Field label="Phone" value={f.guardianPhone} />
+                <Field label="Phone" value={formatMalawiPhone(f.guardianPhone)} />
                 <Field label="Monthly Income" value={f.guardianMonthlyIncome ? `MWK ${f.guardianMonthlyIncome}` : undefined} />
                 <Field label="Relationship" value={f.relationshipToGuardian} />
                 <Field label="T/A" value={f.guardianTa} />
@@ -240,6 +242,9 @@ export default function Step4() {
             I agree to the above declaration
           </span>
         </label>
+        {errors.declarationAccepted && (
+          <p className="text-xs font-normal text-red-500 mt-2">{errors.declarationAccepted}</p>
+        )}
       </div>
     </div>
   );
