@@ -1,22 +1,39 @@
-export const MALAWI_PHONE_PATTERN = /^[89]\d{8}$/;
-export const MALAWI_PHONE_ERROR = "Please enter a valid phone number.";
+// Malawi phone numbers in international format: +265 followed by 9 digits starting with 8 or 9
+export const MALAWI_PHONE_PATTERN = /^\+265[89]\d{8}$/;
+export const MALAWI_PHONE_ERROR = "Enter a valid Malawi number (e.g. +265991234567).";
 
-export function toMalawiLocalPhone(value: string): string {
+/**
+ * Normalise any input to the canonical +265XXXXXXXXX format.
+ *   "+265991234567"  → "+265991234567"
+ *   "265991234567"   → "+265991234567"
+ *   "0991234567"     → "+265991234567"
+ *   "991234567"      → "+265991234567"
+ */
+export function toMalawiPhone(value: string): string {
   const digits = value.replace(/\D/g, "");
-  const withoutCountryCode = digits.startsWith("265") ? digits.slice(3) : digits;
-  const withoutLeadingZero = withoutCountryCode.startsWith("0")
-    ? withoutCountryCode.slice(1)
-    : withoutCountryCode;
 
-  return withoutLeadingZero.slice(0, 9);
+  // Already has country code digits: 265XXXXXXXXX (12 digits)
+  if (digits.startsWith("265") && digits.length === 12) return `+${digits}`;
+  // Local format: 0XXXXXXXXX (10 digits)
+  if (digits.startsWith("0") && digits.length === 10) return `+265${digits.slice(1)}`;
+  // 9 significant digits starting with 8 or 9
+  if ((digits.startsWith("8") || digits.startsWith("9")) && digits.length === 9) return `+265${digits}`;
+
+  // Partial / in-progress input — return as a partial +265 string so the
+  // input field can display what the user has typed so far
+  if (digits.startsWith("265")) return `+${digits}`;
+  if (digits.startsWith("0")) return `+265${digits.slice(1)}`;
+  if (digits.length > 0) return `+265${digits}`;
+  return "";
 }
 
 export function isValidMalawiPhone(value: string): boolean {
-  return MALAWI_PHONE_PATTERN.test(toMalawiLocalPhone(value));
+  return MALAWI_PHONE_PATTERN.test(toMalawiPhone(value));
 }
 
+/** Returns the +265XXXXXXXXX form for display / submission. */
 export function formatMalawiPhone(value?: string | null): string {
   if (!value) return "";
-  const local = toMalawiLocalPhone(value);
-  return local ? `+265${local}` : "";
+  const intl = toMalawiPhone(value);
+  return MALAWI_PHONE_PATTERN.test(intl) ? intl : value;
 }

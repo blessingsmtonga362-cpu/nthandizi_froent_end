@@ -87,8 +87,12 @@ function EducationForm({
             onChange={(e) => onChange({ whoPaidFees: e.target.value })}
           >
             <option value="">Select payer</option>
-            <option value="Parent">Parent</option>
-            <option value="Sponsor">Sponsor</option>
+            <option value="parent">Parent</option>
+            <option value="self">Self</option>
+            <option value="guardian">Guardian</option>
+            <option value="sponsor">Sponsor</option>
+            <option value="scholarship">Scholarship</option>
+            <option value="other">Other</option>
           </select>
           {renderError("whoPaidFees")}
         </div>

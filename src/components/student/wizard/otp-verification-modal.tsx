@@ -74,7 +74,7 @@ export function OtpVerificationModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phoneNumber,
+          phoneNumber: phoneNumber,
           purpose: "application_submission",
         }),
       });
@@ -89,7 +89,7 @@ export function OtpVerificationModal({
       setOtp("");
       setTimeLeft(600);
       setHasResent(true);
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -110,7 +110,7 @@ export function OtpVerificationModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phoneNumber,
+          phoneNumber: phoneNumber,
           code: otp,
           purpose: "application_submission",
         }),
@@ -127,7 +127,7 @@ export function OtpVerificationModal({
       setTimeout(() => {
         onVerified();
       }, 1500);
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -154,7 +154,7 @@ export function OtpVerificationModal({
             <div>
               <h2 className="text-xl font-bold text-brand-slate">Verify Phone Number</h2>
               <p className="text-sm text-slate-600 mt-2">
-                We've sent a verification code to {phoneNumber}
+                We&apos;ve sent a verification code to {phoneNumber}
               </p>
             </div>
 

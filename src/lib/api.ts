@@ -218,6 +218,7 @@ export interface AdminApplicantListItem extends AdminApplicantProfile {
   department: string | null;
   yearOfStudy: number | null;
   score?: number | null;
+  rank?: number | null;
 }
 
 export interface AdminApplicantsByStatusResponse {
@@ -604,8 +605,17 @@ export async function getStudentNotifications(): Promise<Notification[]> {
   return res.data ?? [];
 }
 
+export async function getStudentUnreadCount(): Promise<number> {
+  const res = await request<{ success: boolean; unreadCount: number }>("/notifications/unread-count");
+  return res.unreadCount ?? 0;
+}
+
 export async function markNotificationRead(id: string | number): Promise<void> {
   return request<void>(`/notifications/${id}/read`, { method: "PATCH" });
+}
+
+export async function deleteNotification(id: string | number): Promise<void> {
+  return request<void>(`/notifications/${id}`, { method: "DELETE" });
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
@@ -613,7 +623,7 @@ export async function markAllNotificationsRead(): Promise<void> {
 }
 
 export async function clearAllNotifications(): Promise<void> {
-  return request<void>("/notifications", { method: "DELETE" });
+  return request<void>("/notifications/clear-all", { method: "DELETE" });
 }
 
 export async function submitApplication(payload: unknown): Promise<SubmitApplicationResponse> {
@@ -908,4 +918,26 @@ export async function getApprovedStudentsForDisbursement(): Promise<ApprovedStud
     name: `${a.firstName} ${a.lastName}`.trim(),
     sponsorName: userSponsorMap.get(a.userId) ?? null,
   }));
+}
+
+/**
+ * Fetch payment details for a single approved student.
+ * Called lazily when the admin selects a student in the disbursement form.
+ */
+export async function getApplicantPaymentDetails(userId: string): Promise<{
+  paymentMethod: string | null;
+  paymentPhoneNumber: string | null;
+  bankName: string | null;
+  bankAccount: string | null;
+  accountName: string | null;
+}> {
+  const details = await request<AdminApplicantDetailsResponse>(`/admin/users/${userId}`);
+  const p = details.application.personalDetails;
+  return {
+    paymentMethod: p?.paymentMethod ?? null,
+    paymentPhoneNumber: p?.paymentPhoneNumber ?? null,
+    bankName: p?.bankName ?? null,
+    bankAccount: p?.bankAccount ?? null,
+    accountName: p?.accountName ?? null,
+  };
 }

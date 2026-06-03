@@ -4,7 +4,7 @@ import { isValidMalawiPhone } from "@/lib/phone";
 export type FieldErrors = Record<string, string>;
 
 const REQUIRED_MESSAGE = "This field is required.";
-const PHONE_MESSAGE = "Enter 9 digits starting with 8 or 9.";
+const PHONE_MESSAGE = "Enter a valid Malawi number (e.g. +265991234567).";
 const DOB_MESSAGE = "Use a correct birth date. Applicants must be at least 12 years old.";
 const NATIONAL_ID_MESSAGE = "Enter exactly 8 uppercase letters or numbers.";
 

@@ -119,10 +119,10 @@ export interface ApplicationData {
 
 interface ApplicationStore {
   data: ApplicationData;
-  updatePersonal: (d: Partial<PersonalData>) => void;
-  updateFamily: (d: Partial<FamilyData>) => void;
-  updateEducation: (level: keyof EducationData, d: Partial<EducationLevel>) => void;
-  updatePayment: (d: Partial<PaymentData>) => void;
+  updatePersonal: (updates: Partial<PersonalData>) => void;
+  updateFamily: (updates: Partial<FamilyData>) => void;
+  updateEducation: (level: keyof EducationData, updates: Partial<EducationLevel>) => void;
+  updatePayment: (updates: Partial<PaymentData>) => void;
   setStep: (step: number) => void;
   setReviewVisited: (visited?: boolean) => void;
   setDeclarationAccepted: (accepted: boolean) => void;

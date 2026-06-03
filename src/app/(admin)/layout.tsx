@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [expanded, setExpanded] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { loading } = useAuth("admin");
-  const unreadCount = useUnreadCount("admin");
+  const { unreadCount } = useUnreadCount("admin");
 
   const [storedUser, setStoredUser] = useState<AuthUser | null>(null);
   useEffect(() => {

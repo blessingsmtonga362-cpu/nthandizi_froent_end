@@ -25,7 +25,7 @@ export function ErrorHandler() {
         } else {
           normalizedReason = String(rawReason);
         }
-      } catch (error) {
+      } catch {
         normalizedReason = "Failed to normalize rejection reason";
       }
 

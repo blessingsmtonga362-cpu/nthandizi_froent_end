@@ -659,7 +659,7 @@ export function Criteria() {
     setAllocationNotice("Disability maximum changed. Adjust the other section maximums so all sections add up to 100.");
   };
 
-  const useTemplateForEditing = (template: RankingCriteriaTemplate) => {
+  const applyTemplateForEditing = (template: RankingCriteriaTemplate) => {
     setEditing(cloneCriteria(template.criteria));
     setTemplateName(`${template.name} copy`);
     setMode("custom");
@@ -987,7 +987,7 @@ export function Criteria() {
                         {template.isActive && <Check size={16} className="text-emerald-600" />}
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" onClick={() => useTemplateForEditing(template)} className="border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-brand-blue hover:text-brand-blue">
+                        <button type="button" onClick={() => applyTemplateForEditing(template)} className="border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-brand-blue hover:text-brand-blue">
                           Edit copy
                         </button>
                         <button type="button" onClick={() => void activateTemplate(template)} className="border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-brand-blue hover:text-brand-blue">

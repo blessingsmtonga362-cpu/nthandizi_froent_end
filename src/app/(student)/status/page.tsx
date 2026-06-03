@@ -6,7 +6,7 @@ import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getApplicationStatus, getStoredUser, type ApplicationStatus } from "@/lib/api";
+import { getApplicationStatus, getStoredUser } from "@/lib/api";
 import { useApplicationProgress } from "@/hooks/use-application-progress";
 
 type StatusKey = "draft" | "submitted" | "reviewing" | "approved" | "rejected";

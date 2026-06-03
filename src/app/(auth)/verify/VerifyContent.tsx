@@ -270,7 +270,7 @@ export default function VerifyContent() {
                 </form>
 
                 <p className="text-sm font-normal text-slate-500 mt-8">
-                  Didn't receive the code?{" "}
+                  Didn&apos;t receive the code?{" "}
                   {!canResend ? (
                     <span className="text-brand-blue">Resend in {timer}s</span>
                   ) : (

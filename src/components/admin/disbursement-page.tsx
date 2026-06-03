@@ -16,6 +16,7 @@ import {
   initiateTransfer,
   getTransferHistory,
   getApprovedStudentsForDisbursement,
+  getApplicantPaymentDetails,
   type Transfer,
   type TransferStatus,
   type ApprovedStudentForDisbursement,
@@ -81,15 +82,15 @@ interface FormState {
   amount: string;
   name: string;
   paymentAccountNumber: string;
-  paymentPhoneNumber: string;
   sponsorName: string;
 }
 
-const EMPTY_FORM: FormState = { selectedUserId: "", amount: "", name: "", paymentAccountNumber: "", paymentPhoneNumber: "", sponsorName: "" };
+const EMPTY_FORM: FormState = { selectedUserId: "", amount: "", name: "", paymentAccountNumber: "", sponsorName: "" };
 
 function TransferForm({ onSuccess }: { onSuccess: (transfer: Transfer) => void }) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
+  const [paymentDetailsLoading, setPaymentDetailsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<Transfer | null>(null);
 
@@ -110,8 +111,8 @@ function TransferForm({ onSuccess }: { onSuccess: (transfer: Transfer) => void }
     form.selectedUserId.length > 0 &&
     Number(form.amount) > 0;
 
-  // Picking a student pre-fills data
-  const handleStudentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  // Picking a student pre-fills basic data, then lazily fetches payment details
+  const handleStudentSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const userId = e.target.value;
     if (!userId) {
       setForm(EMPTY_FORM);
@@ -119,15 +120,29 @@ function TransferForm({ onSuccess }: { onSuccess: (transfer: Transfer) => void }
     }
     const student = approvedStudents.find((s) => s.userId === userId);
     if (student) {
-      setForm((f) => ({
-        ...f,
+      // Set basic info immediately so the form reveals
+      setForm({
         selectedUserId: userId,
         name: student.name,
-        paymentAccountNumber: student.paymentAccountNumber ?? "",
-        paymentPhoneNumber: student.paymentPhoneNumber ?? "",
+        paymentAccountNumber: "",
         sponsorName: student.sponsorName ?? "",
         amount: "",
-      }));
+      });
+
+      // Fetch payment details lazily
+      setPaymentDetailsLoading(true);
+      try {
+        const details = await getApplicantPaymentDetails(userId);
+        setForm((f) => ({
+          ...f,
+          // Prefer mobile money phone number; fall back to bank account
+          paymentAccountNumber: details.paymentPhoneNumber ?? details.bankAccount ?? "",
+        }));
+      } catch {
+        // non-fatal — form will just show empty field
+      } finally {
+        setPaymentDetailsLoading(false);
+      }
     }
   };
 
@@ -140,12 +155,14 @@ function TransferForm({ onSuccess }: { onSuccess: (transfer: Transfer) => void }
 
     try {
       const res = await initiateTransfer({
-        phone: form.paymentPhoneNumber.trim() || form.name.trim(),
+        phone: form.paymentAccountNumber.trim(),
         amount: Number(form.amount),
         name: form.name.trim(),
         sponsorName: form.sponsorName.trim() || undefined,
       });
       setSuccess(res.data);
+      // Remove the disbursed student from the dropdown
+      setApprovedStudents((prev) => prev.filter((s) => s.userId !== form.selectedUserId));
       setForm(EMPTY_FORM);
       onSuccess(res.data);
     } catch (err) {
@@ -173,10 +190,9 @@ function TransferForm({ onSuccess }: { onSuccess: (transfer: Transfer) => void }
           </label>
           <div className="relative">
             <select
-              onChange={handleStudentSelect}
+              onChange={(e) => void handleStudentSelect(e)}
               value={form.selectedUserId}
               disabled={studentsLoading}
-              defaultValue=""
               className={cn(fieldClass, "appearance-none pr-10 cursor-pointer disabled:opacity-50")}
             >
               <option value="">
@@ -218,12 +234,12 @@ function TransferForm({ onSuccess }: { onSuccess: (transfer: Transfer) => void }
               </label>
               <input
                 type="text"
-                value={form.paymentAccountNumber || "—"}
+                value={paymentDetailsLoading ? "Loading…" : (form.paymentAccountNumber || "—")}
                 readOnly
-                className={cn(fieldClass, "bg-slate-50 cursor-default")}
+                className={cn(fieldClass, "bg-slate-50 cursor-default", paymentDetailsLoading && "animate-pulse")}
               />
               <p className="text-[11px] text-slate-400">
-                From student's payment details in their profile.
+                From student&apos;s payment details in their profile.
               </p>
             </div>
 

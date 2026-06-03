@@ -296,6 +296,18 @@ export function ApplicantDetailsPanel({
             )}
           </SectionCard>
 
+          <SectionCard title="Payment Details">
+            <DetailGrid
+              fields={[
+                { label: "Payment Method", value: formatValue(personal?.paymentMethod) },
+                { label: "Payment Phone Number", value: formatValue(personal?.paymentPhoneNumber) },
+                { label: "Bank Name", value: formatValue(personal?.bankName) },
+                { label: "Bank Account Number", value: formatValue(personal?.bankAccount) },
+                { label: "Account Name", value: formatValue(personal?.accountName) },
+              ]}
+            />
+          </SectionCard>
+
           <SectionCard title="Education History">
             <div className="space-y-6">
               <EducationList title="Primary" records={education?.primary ?? []} />
@@ -303,7 +315,6 @@ export function ApplicantDetailsPanel({
               <EducationList title="Tertiary" records={education?.tertiary ?? []} />
             </div>
           </SectionCard>
-
           {children}
         </>
       ) : (

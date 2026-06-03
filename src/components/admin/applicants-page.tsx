@@ -273,9 +273,9 @@ export default function ApplicantsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredApplicants.map((row) => (
+                filteredApplicants.map((row, i) => (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-normal text-slate-600">{row.rank ?? "—"}</td>
+                    <td className="px-6 py-4 text-sm font-normal text-slate-600">{row.rank ?? i + 1}</td>
                     <td className="px-6 py-4 text-sm font-normal text-slate-600">{row.name}</td>
                     <td className="px-6 py-4 text-sm font-normal text-slate-600">{row.registrationNumber || row.id}</td>
                     <td className="px-6 py-4 text-sm font-normal text-slate-600">{row.program}</td>

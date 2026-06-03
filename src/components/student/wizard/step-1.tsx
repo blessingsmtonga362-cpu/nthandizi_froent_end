@@ -154,7 +154,13 @@ export default function Step1({
 
       {/* Payment Details */}
       <div className="space-y-4">
-        <p className="text-sm font-medium text-slate-700">Payment Details</p>
+        <div>
+          <p className="text-sm font-medium text-slate-700">Payment Details</p>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            Ensure your payment details are correct. Mthandizi will not be held accountable for
+            disbursements sent to incorrect accounts or numbers provided by the applicant.
+          </p>
+        </div>
         <div className="space-y-2">
           <label className={labelClass}>Payment Method</label>
           <select

@@ -15,7 +15,6 @@ import { useRouter } from "next/navigation";
 import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
 import { toastSuccess, toastError } from "@/lib/toast";
-import { formatMalawiPhone } from "@/lib/phone";
 import {
   FieldErrors,
   validateApplication,
@@ -38,7 +37,7 @@ export default function ApplicationWizard() {
   const [validationAttemptedSteps, setValidationAttemptedSteps] = useState<number[]>([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [pendingPayload, setPendingPayload] = useState<any>(null);
+  const [pendingPayload, setPendingPayload] = useState<Record<string, unknown> | null>(null);
   const router = useRouter();
 
   // Check on mount whether the application was already submitted
@@ -156,7 +155,7 @@ export default function ApplicationWizard() {
             fatherFirstName: family.fatherFirstName,
             fatherSurname: family.fatherSurname,
             fatherNationalId: family.fatherNationalId,
-            fatherPhone: formatMalawiPhone(family.fatherPhone),
+            fatherPhone: family.fatherPhone,
             fatherProfession: family.fatherProfession,
             fatherMonthlyIncome: family.fatherMonthlyIncome,
             fatherTa: family.fatherTa,
@@ -165,7 +164,7 @@ export default function ApplicationWizard() {
             motherFirstName: family.motherFirstName,
             motherSurname: family.motherSurname,
             motherNationalId: family.motherNationalId,
-            motherPhone: formatMalawiPhone(family.motherPhone),
+            motherPhone: family.motherPhone,
             motherProfession: family.motherProfession,
             motherMonthlyIncome: family.motherMonthlyIncome,
             motherTa: family.motherTa,
@@ -177,7 +176,7 @@ export default function ApplicationWizard() {
               parentFirstName: family.parentFirstName,
               parentSurname: family.parentSurname,
               parentNationalId: family.parentNationalId,
-              parentPhone: formatMalawiPhone(family.parentPhone),
+              parentPhone: family.parentPhone,
               parentMonthlyIncome: family.parentMonthlyIncome,
               studentRelationship: family.studentRelationship,
               parentTa: family.parentTa,
@@ -190,7 +189,7 @@ export default function ApplicationWizard() {
                 guardianFirstName: family.guardianFirstName,
                 guardianSurname: family.guardianSurname,
                 guardianNationalId: family.guardianNationalId,
-                guardianPhone: formatMalawiPhone(family.guardianPhone),
+                guardianPhone: family.guardianPhone,
                 guardianMonthlyIncome: family.guardianMonthlyIncome,
                 relationshipToGuardian: family.relationshipToGuardian,
                 guardianTa: family.guardianTa,
@@ -204,18 +203,12 @@ export default function ApplicationWizard() {
     const payload = {
       personal: {
         ...data.personal,
-        phoneNumber: formatMalawiPhone(data.personal.phoneNumber),
         studentIdFile: undefined,
         nationalIdFile: undefined,
       },
       family: { ...sharedFamilyFields, ...conditionalFamilyFields },
       education: data.education,
-      payment: {
-        ...data.payment,
-        phoneNumber: data.payment.phoneNumber
-          ? formatMalawiPhone(data.payment.phoneNumber)
-          : "",
-      },
+      payment: { ...data.payment },
     };
 
     // Store payload and show OTP modal
@@ -230,7 +223,36 @@ export default function ApplicationWizard() {
     setSubmitting(true);
 
     try {
-      const response = await submitApplication(pendingPayload);
+      // Upload the consent form first if the student provided one.
+      // Uses the dedicated endpoint that does NOT require an existing family
+      // record — just uploads the file and returns the URL. The URL is then
+      // included in the submit payload so it lands in the DB atomically.
+      let consentFormUrl: string | undefined;
+      const consentFile = data.family.guarantorConsentFile;
+      if (consentFile) {
+        const formData = new FormData();
+        formData.append("consentForm", consentFile);
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+        const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+        const uploadRes = await fetch(`${BASE_URL}/family/upload-consent-form`, {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json() as { consentFormUrl?: string };
+          consentFormUrl = uploadData.consentFormUrl;
+        }
+        // non-fatal — if upload fails the submission still proceeds
+      }
+
+      // Attach the consent form URL to the family payload so it is written
+      // to the family record during the submit upsert in one step.
+      const finalPayload = consentFormUrl
+        ? { ...pendingPayload, family: { ...(pendingPayload.family as Record<string, unknown>), consentFormUrl } }
+        : pendingPayload;
+
+      const response = await submitApplication(finalPayload);
       reset();
       await clearOfflinePersistence();
       const userId = getStoredUser()?.id ?? "anonymous";
@@ -248,7 +270,10 @@ export default function ApplicationWizard() {
       });
       router.push(`/apply/success?${params.toString()}`);
     } catch (error) {
-      const errorMessage = "Submission failed. Please check your details and try again.";
+      const errorMessage =
+        error instanceof Error && error.message
+          ? error.message
+          : "Submission failed. Please check your details and try again.";
       setSubmitError(errorMessage);
       toastError({
         title: "Submission Failed",
@@ -413,7 +438,7 @@ export default function ApplicationWizard() {
       {/* OTP Verification Modal */}
       <OtpVerificationModal
         isOpen={showOtpModal}
-        phoneNumber={formatMalawiPhone(data.personal.phoneNumber)}
+        phoneNumber={data.personal.phoneNumber}
         onVerified={handleOtpVerified}
         onCancel={handleOtpCancel}
         isSubmitting={submitting}
