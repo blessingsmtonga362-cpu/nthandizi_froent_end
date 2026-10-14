@@ -12,7 +12,7 @@ import Step4 from "@/components/student/wizard/step-4";
 import { OtpVerificationModal } from "@/components/student/wizard/otp-verification-modal";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
+import { API_BASE_URL, submitApplication, getApplicationStatus, getStoredUser } from "@/lib/api";
 import { calculateApplicationProgress } from "@/lib/application-progress";
 import { toastSuccess, toastError } from "@/lib/toast";
 import {
@@ -232,9 +232,8 @@ export default function ApplicationWizard() {
       if (consentFile) {
         const formData = new FormData();
         formData.append("consentForm", consentFile);
-        const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
         const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-        const uploadRes = await fetch(`${BASE_URL}/family/upload-consent-form`, {
+        const uploadRes = await fetch(`${API_BASE_URL}/family/upload-consent-form`, {
           method: "POST",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: formData,

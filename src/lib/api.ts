@@ -1,6 +1,8 @@
 
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+export const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL ?? "https://student-profile-hnzx.onrender.com"
+).replace(/\/+$/, "");
 
 // Token helpers
 
@@ -446,7 +448,7 @@ async function request<T>(
 
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
+    res = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers,
       signal: controller.signal,
@@ -788,7 +790,7 @@ export async function createSponsor(payload: {
     formData.append("rankingCriteriaId", payload.rankingCriteriaId);
   }
 
-  const res = await fetch(`${BASE_URL}/sponsors`, {
+  const res = await fetch(`${API_BASE_URL}/sponsors`, {
     method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     body: formData,
@@ -811,7 +813,7 @@ export async function createSponsor(payload: {
 export function getAssetUrl(path?: string | null): string | null {
   if (!path) return null;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${BASE_URL}${path}`;
+  return `${API_BASE_URL}${path}`;
 }
 
 // ── Disbursement / Transfers ──────────────────────────────────────────────────
