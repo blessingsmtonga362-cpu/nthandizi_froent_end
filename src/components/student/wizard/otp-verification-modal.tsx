@@ -9,7 +9,7 @@ import { AlertCircle, CheckCircle2, Loader } from "lucide-react";
 
 export interface OtpVerificationModalProps {
   isOpen: boolean;
-  phoneNumber: string;
+  email: string;
   onVerified: () => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -20,7 +20,7 @@ const errorClass = "border-red-400 hover:border-red-500 focus:border-red-500";
 
 export function OtpVerificationModal({
   isOpen,
-  phoneNumber,
+  email,
   onVerified,
   onCancel,
   isSubmitting = false,
@@ -39,7 +39,7 @@ export function OtpVerificationModal({
     setHasResent(false);
     handleSendOtp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, phoneNumber]);
+  }, [isOpen, email]);
 
   // Timer for OTP expiry
   useEffect(() => {
@@ -69,11 +69,11 @@ export function OtpVerificationModal({
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/send-phone-otp`, {
+      const response = await fetch(`${API_BASE_URL}/auth/send-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phoneNumber: phoneNumber,
+          email: email,
           purpose: "application_submission",
         }),
       });
@@ -105,11 +105,11 @@ export function OtpVerificationModal({
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/verify-phone-otp`, {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phoneNumber: phoneNumber,
+          email: email,
           code: otp,
           purpose: "application_submission",
         }),
@@ -145,15 +145,15 @@ export function OtpVerificationModal({
             </div>
             <h2 className="text-xl font-bold text-brand-slate">Verified!</h2>
             <p className="text-sm text-slate-600">
-              Your phone number has been verified. Submitting your application...
+              Your email has been verified. Submitting your application...
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-brand-slate">Verify Phone Number</h2>
+              <h2 className="text-xl font-bold text-brand-slate">Verify Email Address</h2>
               <p className="text-sm text-slate-600 mt-2">
-                We&apos;ve sent a verification code to {phoneNumber}
+                We&apos;ve sent a verification code to {email}
               </p>
             </div>
 

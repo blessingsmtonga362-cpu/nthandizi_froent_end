@@ -437,7 +437,7 @@ export default function ApplicationWizard() {
       {/* OTP Verification Modal */}
       <OtpVerificationModal
         isOpen={showOtpModal}
-        phoneNumber={data.personal.phoneNumber}
+        email={getStoredUser()?.email ?? ""}
         onVerified={handleOtpVerified}
         onCancel={handleOtpCancel}
         isSubmitting={submitting}
