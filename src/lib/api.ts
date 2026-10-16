@@ -1,7 +1,7 @@
 
 
 export const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "https://student-profile-1.onrender.com"
+  process.env.NEXT_PUBLIC_API_URL ?? "https://student-profile-api-ofh2.onrender.com"
 ).replace(/\/+$/, "");
 
 // Token helpers
