@@ -105,7 +105,7 @@ export default function LoginPage() {
               <label className="text-sm font-medium text-slate-700 block">Email</label>
               <Input
                 type="email"
-                placeholder="your@unima.ac.mw"
+                placeholder="you@example.com"
                 autoComplete="username"
                 required
                 value={email}

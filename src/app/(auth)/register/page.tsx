@@ -26,11 +26,7 @@ export default function RegisterPage() {
 
   const handleEmailChange = (value: string) => {
     setFormData({ ...formData, email: value });
-    if (value.includes("@") && !value.endsWith("@unima.ac.mw")) {
-      setEmailError("Please use your UNIMA email address (@unima.ac.mw)");
-    } else {
-      setEmailError("");
-    }
+    setEmailError("");
   };
 
   const passwordStrength = (pwd: string) => {
@@ -55,7 +51,7 @@ export default function RegisterPage() {
   const isFormValid = () =>
     formData.firstName.trim() &&
     formData.surname.trim() &&
-    formData.email.endsWith("@unima.ac.mw") &&
+    formData.email.trim().length > 0 &&
     formData.password.length >= 8 &&
     isPasswordStrong &&
     formData.password === formData.confirmPassword &&
@@ -168,14 +164,14 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* University Email */}
+              {/* Account Email */}
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700 block">University Email</label>
+                <label className="text-sm font-medium text-slate-700 block">Email Address</label>
                 <Input
                   required
                   type="email"
                   autoComplete="email"
-                  placeholder="your@unima.ac.mw"
+                  placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   className={cn(fieldClass, emailError ? "border-red-500" : "")}
