@@ -8,7 +8,7 @@ import { Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { registerUser } from "@/lib/api";
+import { registerUser, setVerificationSession } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -67,14 +67,14 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError("");
     try {
-      await registerUser({
+      const response = await registerUser({
         firstName: formData.firstName.trim(),
         lastName: formData.surname.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
       });
-     
-      router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+      setVerificationSession(response.access_token);
+      router.push(`/verify-email?email=${encodeURIComponent(response.email)}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -288,5 +288,4 @@ export default function RegisterPage() {
     </div>
   );
 }
-
 

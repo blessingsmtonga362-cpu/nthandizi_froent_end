@@ -7,7 +7,13 @@ import { Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { login, setToken, setStoredUser } from "@/lib/api";
+import {
+  login,
+  setToken,
+  setStoredUser,
+  clearVerificationSession,
+  setVerificationSession,
+} from "@/lib/api";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +34,12 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const { token, user } = await login(email.trim().toLowerCase(), password);
+      if (user.emailVerified === false) {
+        setVerificationSession(token);
+        router.push(`/verify-email?email=${encodeURIComponent(user.email)}`);
+        return;
+      }
+      clearVerificationSession();
       setToken(token);
       setStoredUser(user);
       if (user.role === "admin") {

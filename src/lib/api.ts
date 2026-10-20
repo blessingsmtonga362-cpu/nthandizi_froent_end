@@ -18,6 +18,7 @@ export function setToken(token: string): void {
 export function removeToken(): void {
   localStorage.removeItem("auth_token");
   localStorage.removeItem("auth_user");
+  clearVerificationSession();
 }
 
 export function getStoredUser(): AuthUser | null {
@@ -35,6 +36,21 @@ export function setStoredUser(user: AuthUser): void {
   localStorage.setItem("auth_user", JSON.stringify(user));
 }
 
+const VERIFICATION_TOKEN_KEY = "registration_verification_token";
+
+export function getVerificationToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(VERIFICATION_TOKEN_KEY);
+}
+
+export function setVerificationSession(token: string): void {
+  sessionStorage.setItem(VERIFICATION_TOKEN_KEY, token);
+}
+
+export function clearVerificationSession(): void {
+  sessionStorage.removeItem(VERIFICATION_TOKEN_KEY);
+}
+
 //  Types
 export type AuthRole = "student" | "admin";
 export type BackendRole = "user" | "admin";
@@ -46,6 +62,7 @@ export interface AuthUser {
   firstName?: string;
   lastName?: string;
   registrationNumber?: string;
+  emailVerified?: boolean;
 }
 
 export interface LoginResponse {
@@ -432,15 +449,15 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 8000;
 async function request<T>(
   path: string,
   options: RequestInit = {},
-  timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS
+  timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
+  authToken: string | null = getToken()
 ): Promise<T> {
-  const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
   }
 
   const controller = new AbortController();
@@ -519,25 +536,43 @@ export interface RegisterPayload {
   password: string;
 }
 
-export async function registerUser(payload: RegisterPayload): Promise<{ message: string }> {
-  return request<{ message: string }>("/auth/register", {
+export interface RegisterResponse {
+  message: string;
+  email: string;
+  access_token: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    firstName: string;
+    lastName: string;
+    emailVerified: boolean;
+  };
+}
+
+export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
+  return request<RegisterResponse>("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   }, 30000); 
 }
 
-export async function verifyOtp(email: string, otp: string): Promise<{ message: string }> {
-  return request<{ message: string }>("/auth/verify-otp", {
+export async function verifyEmail(token: string): Promise<{ success: boolean; email: string; emailVerified: boolean }> {
+  return request<{ success: boolean; email: string; emailVerified: boolean }>("/auth/email/verify", {
     method: "POST",
-    body: JSON.stringify({ email, otp }),
-  });
+    body: JSON.stringify({ token }),
+  }, DEFAULT_REQUEST_TIMEOUT_MS, null);
 }
 
-export async function resendOtp(email: string): Promise<{ message: string }> {
-  return request<{ message: string }>("/auth/resend-otp", {
+export async function resendEmailVerification(): Promise<{ success: boolean; message: string }> {
+  const token = getVerificationToken();
+  if (!token) {
+    throw new Error("Your verification session has expired. Sign in again to request a new link.");
+  }
+
+  return request<{ success: boolean; message: string }>("/auth/email/verification", {
     method: "POST",
-    body: JSON.stringify({ email }),
-  });
+  }, 30000, token);
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -550,13 +585,12 @@ export async function login(email: string, password: string): Promise<LoginRespo
       firstName?: string;
       lastName?: string;
       registrationNumber?: string;
+      emailVerified?: boolean;
     };
   }>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-
-  setToken(raw.access_token);
 
   return {
     token: raw.access_token,
@@ -567,6 +601,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
       firstName: raw.user.firstName,
       lastName: raw.user.lastName,
       registrationNumber: raw.user.registrationNumber,
+      emailVerified: raw.user.emailVerified,
     },
   };
 }
